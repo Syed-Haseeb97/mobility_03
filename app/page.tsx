@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight, Bike, CarFront, Clock3, MapPin, ShieldCheck, Zap } from "lucide-react";
 import { seedVehicles, type Vehicle } from "@/lib/data";
@@ -73,15 +72,34 @@ export default function Home() {
             <div className="home-art-orbit home-art-orbit-two" />
             <div className="home-art-grid" />
             <div className="home-art-label home-art-label-top"><span>MOVE LIGHT</span><span>01 / EVERYDAY</span></div>
-            <div className="home-art-image">
-              <Image src="/vehicles/ather-450x.png" alt="Electric scooter available in the vehicle collection" fill priority sizes="(max-width: 760px) 90vw, 48vw" />
+            <div className="home-route-map" aria-hidden="true">
+              <svg className="home-route-lines" viewBox="0 0 600 480" fill="none">
+                <path className="home-route-secondary" d="M40 120 C135 95 155 155 235 125 S365 70 430 145 S515 230 580 205" />
+                <path className="home-route-track" d="M72 330 C140 280 150 185 240 205 S355 295 410 210 S490 140 530 110" />
+                <circle className="home-route-dot" cx="72" cy="330" r="7" />
+                <circle className="home-route-dot home-route-dot-end" cx="530" cy="110" r="7" />
+              </svg>
+              <div className="home-map-node home-map-node-campus">
+                <span className="home-map-pin"><MapPin size={15} /></span>
+                <div><small>01 / START</small><strong>Campus gate</strong></div>
+              </div>
+              <div className="home-map-node home-map-node-library">
+                <span className="home-map-pin home-map-pin-light"><MapPin size={15} /></span>
+                <div><small>02 / ON THE WAY</small><strong>Your next stop</strong></div>
+              </div>
+              <div className="home-map-node home-map-node-destination">
+                <span className="home-map-pin"><MapPin size={15} /></span>
+                <div><small>03 / ARRIVE</small><strong>City, your way</strong></div>
+              </div>
+              <div className="home-map-floating home-map-floating-bike"><Bike size={17} /><span>BIKES &amp; SCOOTERS</span></div>
+              <div className="home-map-floating home-map-floating-car"><CarFront size={17} /><span>CARS &amp; EVS</span></div>
+              <div className="home-art-caption">
+                <span className="home-art-caption-icon"><Zap size={16} /></span>
+                <div><strong>One search. More ways to go.</strong><span>Compare options for your day.</span></div>
+                <ArrowDownRight size={19} />
+              </div>
             </div>
-            <div className="home-art-caption">
-              <span className="home-art-caption-icon"><Zap size={16} /></span>
-              <div><strong>Short trip. Big freedom.</strong><span>Find an option that fits your route.</span></div>
-              <ArrowDownRight size={19} />
-            </div>
-            <div className="home-art-side-note">A BETTER WAY TO GET AROUND</div>
+            <div className="home-art-side-note">CAMPUS TO CITY · YOUR CHOICE</div>
           </div>
         </div>
         <div className="home-hero-bottomline"><span>LESS PLANNING. MORE GETTING THERE.</span><span>BUILT AROUND YOUR DAY <ArrowDownRight size={14} /></span></div>
