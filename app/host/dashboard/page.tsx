@@ -166,8 +166,7 @@ export default function HostDashboard() {
             {currentUser?.businessName || currentUser?.name || "Host Studio"}.
           </h1>
           <p className="page-intro">
-            Comprehensive command center for vehicle listings, active trip handovers,
-            rental revenue breakdown, and institutional settlements.
+            Demo partner workspace for sample bookings, handover details, and estimated payout requests. No funds are transferred by this prototype.
           </p>
         </div>
 
@@ -188,7 +187,7 @@ export default function HostDashboard() {
               gap: 8,
             }}
           >
-            <Banknote size={15} /> Request Settlement
+            <Banknote size={15} /> Request Demo Payout
           </button>
           <Link className="button-primary" href="/host/add-vehicle">
             Add a Vehicle <ArrowUpRight size={15} />
@@ -287,7 +286,7 @@ export default function HostDashboard() {
             <div className="host-stat">
               <span>
                 <Banknote size={13} style={{ display: "inline", marginRight: 5 }} />
-                Pending Settlement
+                Estimated Payout Available
               </span>
               <strong style={{ fontSize: 22, color: "#4d6b13" }}>
                 {money(data?.metrics.pendingSettlement || 0)}
@@ -479,7 +478,7 @@ export default function HostDashboard() {
               <div className="section-head" style={{ marginTop: 28, marginBottom: 18 }}>
                 <div>
                   <div className="eyebrow">Financial Ledger &amp; Disbursals</div>
-                  <h2 style={{ fontSize: 24 }}>Partner Settlements</h2>
+                  <h2 style={{ fontSize: 24 }}>Payout Requests (Demo)</h2>
                 </div>
               </div>
 
@@ -506,7 +505,7 @@ export default function HostDashboard() {
                     onClick={() => setShowPayoutModal(true)}
                     className="button-primary"
                   >
-                    Withdraw Settlement <ArrowUpRight size={14} />
+                    Request Payout Estimate <ArrowUpRight size={14} />
                   </button>
                 </div>
               </div>
