@@ -44,9 +44,17 @@ export async function PUT(
         { status: 403 }
       );
     }
-    if (body.rcVerified === true || body.insuranceVerified === true) {
+    const restrictedFields = [
+      "ownerId",
+      "ownerName",
+      "rcVerified",
+      "insuranceVerified",
+      "registrationNumber",
+      "insuranceValidTill",
+    ];
+    if (restrictedFields.some((field) => Object.prototype.hasOwnProperty.call(body, field))) {
       return NextResponse.json(
-        { error: "Document verification can only be recorded by an authorized review process." },
+        { error: "Owner identity and document-verification fields can only be changed through an authorized review process." },
         { status: 403 }
       );
     }
