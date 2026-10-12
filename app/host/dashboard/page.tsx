@@ -43,21 +43,21 @@ export default function HostDashboard() {
 
   // Handover modal state
   const [handoverBooking, setHandoverBooking] = useState<Booking | null>(null);
-  const [startingOdo, setStartingOdo] = useState("12500");
-  const [fuelBattery, setFuelBattery] = useState("100%");
-  const [helmetsGiven, setHelmetsGiven] = useState("1");
-  const [handoverNotes, setHandoverNotes] = useState("Vehicle clean, helmet provided, DL checked.");
+  const [startingOdo, setStartingOdo] = useState("");
+  const [fuelBattery, setFuelBattery] = useState("");
+  const [helmetsGiven, setHelmetsGiven] = useState("");
+  const [handoverNotes, setHandoverNotes] = useState("");
 
   // Return modal state
   const [returnBooking, setReturnBooking] = useState<Booking | null>(null);
-  const [closingOdo, setClosingOdo] = useState("12620");
-  const [damageNotes, setDamageNotes] = useState("None, clean return.");
+  const [closingOdo, setClosingOdo] = useState("");
+  const [damageNotes, setDamageNotes] = useState("");
 
   // Payout request modal state
   const [showPayoutModal, setShowPayoutModal] = useState(false);
-  const [payoutAmount, setPayoutAmount] = useState("1500");
+  const [payoutAmount, setPayoutAmount] = useState("");
   const [payoutDestination, setPayoutDestination] = useState(
-    currentUser?.bankUpi || "juniperhire@icici"
+    currentUser?.bankUpi || ""
   );
   const [payoutNotice, setPayoutNotice] = useState<string | null>(null);
 
@@ -748,16 +748,16 @@ export default function HostDashboard() {
             }}
           >
             <div className="eyebrow">Partner Disbursal</div>
-            <h2 style={{ fontSize: 22, margin: "8px 0 16px" }}>Request Settlement</h2>
+            <h2 style={{ fontSize: 22, margin: "8px 0 16px" }}>Request Demo Payout</h2>
 
             <form onSubmit={handleRequestPayout}>
               <div className="form-stack">
                 <label>
-                  Settlement Amount (₹)
+                  Gross payout request (₹; 10% fee estimate applies)
                   <input
                     type="number"
                     min="500"
-                    max={data?.metrics.pendingSettlement || 10000}
+                    max={data?.metrics.pendingSettlement ?? 0}
                     value={payoutAmount}
                     onChange={(e) => setPayoutAmount(e.target.value)}
                   />
