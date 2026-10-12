@@ -95,7 +95,7 @@ export default function AdminPage() {
           </h1>
           <p className="page-intro">
             Role-restricted control center for auditing regulatory compliance, authenticating
-            partner documentation, approving listings, and managing financial settlement reconciliations.
+            reviewing listings, handling demo booking requests, and inspecting illustrative payout records.
           </p>
         </div>
 
