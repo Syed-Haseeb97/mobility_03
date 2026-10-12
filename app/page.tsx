@@ -67,7 +67,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="home-hero-art" aria-label="A scooter representing everyday campus travel">
+          <div className="home-hero-art" role="img" aria-label="Illustrative route from a campus gate to a city destination">
             <div className="home-art-orbit home-art-orbit-one" />
             <div className="home-art-orbit home-art-orbit-two" />
             <div className="home-art-grid" />
