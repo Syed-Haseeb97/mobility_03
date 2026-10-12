@@ -125,7 +125,7 @@ function RentContent() {
     <main className="page-shell">
       <div className="page-top">
         <div>
-          <div className="eyebrow">Verified Marketplace / Live Inventory</div>
+          <div className="eyebrow">Campus Marketplace / Current Listings</div>
           <h1 className="page-heading">
             Find your kind
             <br />
@@ -314,7 +314,7 @@ export default function RentPage() {
     <Suspense
       fallback={
         <main className="page-shell">
-          <p className="page-intro">Loading verified vehicle fleet…</p>
+          <p className="page-intro">Loading current vehicle listings…</p>
         </main>
       }
     >
