@@ -116,11 +116,9 @@ export async function POST(request: Request) {
 
     const total = baseTotal + damageWaiver + platformFee + taxes;
 
-    // 4. Secure Transaction Reference
-    const paymentTxnId =
-      (paymentMethod === "UPI" ? "UPI/" : paymentMethod === "CARD" ? "CARD/" : "NB/") +
-      Date.now().toString().slice(-8) +
-      Math.floor(1000 + Math.random() * 9000);
+    // Payment remains pending until a real provider confirms it.
+    const selectedPaymentMethod: BookingRecord["paymentMethod"] =
+      paymentMethod === "CARD" || paymentMethod === "NETBANKING" ? paymentMethod : "UPI";
 
     const booking: Omit<BookingRecord, "id" | "createdAt"> = {
       vehicleId: vehicle.id,
@@ -157,7 +155,7 @@ export async function POST(request: Request) {
       total,
 
       paymentStatus: "PENDING",
-      paymentMethod: paymentMethod || "UPI",
+      paymentMethod: selectedPaymentMethod,
       paymentTxnId: "",
       paidAt: "",
 
