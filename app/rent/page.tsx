@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, ShieldCheck, HardHat, RefreshCw } from "lucide-react";
 import { seedVehicles, type Vehicle, type VehicleCategory } from "@/lib/data";
@@ -27,7 +27,7 @@ function RentContent() {
   const [rateFilter, setRateFilter] = useState("All rates");
   const [sort, setSort] = useState("Recommended");
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     setLoading(true);
     setLoadError("");
     try {
@@ -84,11 +84,11 @@ function RentContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate]);
 
   useEffect(() => {
     fetchVehicles();
-  }, [startDate, endDate]);
+  }, [fetchVehicles]);
 
   const list = useMemo(
     () =>
