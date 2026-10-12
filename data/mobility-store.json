@@ -540,10 +540,9 @@
       "amount": 800,
       "platformCommission": 80,
       "netSettlement": 720,
-      "status": "PROCESSED",
+      "status": "PENDING",
       "payoutMethod": "UPI Settlement",
       "destinationAccount": "juniperhire@icici",
-      "utrNumber": "UTR-IMPS-35395848",
       "createdAt": "2026-10-12T20:03:15.848Z"
     },
     {
@@ -553,10 +552,9 @@
       "amount": 2200,
       "platformCommission": 220,
       "netSettlement": 1980,
-      "status": "PROCESSED",
+      "status": "PENDING",
       "payoutMethod": "UPI Settlement",
       "destinationAccount": "cornerstone@oksbi",
-      "utrNumber": "UTR-AXIS-2026100988112",
       "createdAt": "2026-10-10T09:00:00Z"
     }
   ],
