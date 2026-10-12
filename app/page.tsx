@@ -71,7 +71,6 @@ export default function Home() {
             <div className="home-art-orbit home-art-orbit-one" />
             <div className="home-art-orbit home-art-orbit-two" />
             <div className="home-art-grid" />
-            <div className="home-art-label home-art-label-top"><span>MOVE LIGHT</span><span>01 / EVERYDAY</span></div>
             <div className="home-route-map" aria-hidden="true">
               <svg className="home-route-lines" viewBox="0 0 600 480" fill="none">
                 <path className="home-route-secondary" d="M40 120 C135 95 155 155 235 125 S365 70 430 145 S515 230 580 205" />
