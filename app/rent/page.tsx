@@ -10,6 +10,7 @@ function RentContent() {
   const searchParams = useSearchParams();
   const initialCity = searchParams.get("city") || "All locations";
   const initialWheels = searchParams.get("wheels") || "All vehicles";
+  const initialCategory = searchParams.get("category") || "All types";
   const startDate = searchParams.get("start") || "";
   const endDate = searchParams.get("end") || "";
 
@@ -19,7 +20,7 @@ function RentContent() {
 
   const [query, setQuery] = useState("");
   const [city, setCity] = useState(initialCity === "" ? "All locations" : initialCity);
-  const [category, setCategory] = useState("All types");
+  const [category, setCategory] = useState(initialCategory);
   const [wheelType, setWheelType] = useState(initialWheels);
   const [rateFilter, setRateFilter] = useState("All rates");
   const [sort, setSort] = useState("Recommended");
