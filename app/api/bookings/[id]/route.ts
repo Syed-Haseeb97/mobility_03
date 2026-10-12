@@ -77,7 +77,7 @@ export async function PATCH(
         startingOdometer <= 0 ||
         !String(handover?.fuelBatteryLevel || "").trim() ||
         handover?.helmetsIssued === undefined ||
-        String(handover.helmetsIssued).trim() === "" ||
+        String(handover?.helmetsIssued).trim() === "" ||
         !Number.isInteger(helmetsIssued) ||
         helmetsIssued < 0 ||
         handover?.licenseInspected !== true ||
