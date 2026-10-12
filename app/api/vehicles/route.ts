@@ -26,13 +26,19 @@ export async function GET(request: Request) {
       }
     }
 
-    // Public browsing only exposes approved listings.
-    const status = statusParam || (ownerId ? undefined : "approved");
+    // Only the local/explicit demo can query owner-scoped and non-public inventory.
+    // In a public production deployment, browsing is restricted to approved listings.
+    const demoAccessAllowed =
+      process.env.NODE_ENV !== "production" ||
+      process.env.MOBILITY_ENABLE_UNSAFE_DEMO_MODE === "true";
+    const status = demoAccessAllowed
+      ? statusParam || (ownerId ? undefined : "approved")
+      : "approved";
     let vehicles = db.getVehicles({
       city,
       category,
       wheels,
-      ownerId,
+      ownerId: demoAccessAllowed ? ownerId : undefined,
       status,
       search,
     });
