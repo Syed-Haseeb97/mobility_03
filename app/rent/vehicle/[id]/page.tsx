@@ -192,9 +192,7 @@ export default function VehicleDetail() {
 
       setBookingNotice({
         type: "success",
-        message: `Booking Confirmed! Reference: ${data.booking.id}. Payment of ${money(
-          data.booking.total
-        )} processed securely via ${paymentMethod}.`,
+        message: `Request saved: ${data.booking.id}. Payment is still pending; no money has been collected in this demo.`,
         bookingId: data.booking.id,
       });
 
@@ -708,7 +706,7 @@ export default function VehicleDetail() {
               }}
             >
               <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                {bookingNotice.type === "success" ? "✓ Reservation Confirmed" : "Notice"}
+                {bookingNotice.type === "success" ? "✓ Request Saved · Payment Pending" : "Notice"}
               </div>
               {bookingNotice.message}
 
