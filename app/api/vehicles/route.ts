@@ -101,6 +101,10 @@ export async function POST(request: Request) {
     if (
       !name?.trim() ||
       !make?.trim() ||
+      !city?.trim() ||
+      !pickupAddress?.trim() ||
+      !["Bike", "Scooter", "Hatchback", "Sedan", "SUV", "Electric"].includes(category) ||
+      !["2-Wheeler", "4-Wheeler"].includes(wheels) ||
       !Number.isFinite(numericPrice) ||
       numericPrice < 200 ||
       !Number.isFinite(numericHourlyPrice) ||
