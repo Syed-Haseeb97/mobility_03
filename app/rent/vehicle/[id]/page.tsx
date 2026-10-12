@@ -44,6 +44,7 @@ export default function VehicleDetail() {
   );
   const [helmetOption, setHelmetOption] = useState("1 Helmet Included (Free)");
   const [paymentMethod, setPaymentMethod] = useState<"UPI" | "CARD" | "NETBANKING">("UPI");
+  const [today, setToday] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Submission state
@@ -53,6 +54,11 @@ export default function VehicleDetail() {
     message: string;
     bookingId?: string;
   } | null>(null);
+
+  useEffect(() => {
+    const now = new Date();
+    setToday(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`);
+  }, []);
 
   // Synchronize with currentUser when loaded
   useEffect(() => {
@@ -486,7 +492,7 @@ export default function VehicleDetail() {
           <div className="eyebrow">Reservation Desk</div>
           <h2>Configure Rental</h2>
           <p className="muted">
-            Instant booking with server-side concurrency check and verifiable receipt.
+            Send a booking request and review the estimated total. Payment is not collected in this demo.
           </p>
 
           <form onSubmit={handleBook}>
@@ -496,7 +502,7 @@ export default function VehicleDetail() {
                 <input
                   type="date"
                   required
-                  min={new Date().toISOString().slice(0, 10)}
+                  min={today || undefined}
                   value={start}
                   onChange={(e) => {
                     setStart(e.target.value);
@@ -573,7 +579,7 @@ export default function VehicleDetail() {
               )}
 
               <label>
-                Payment Method
+                Preferred payment method (demo only)
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value as any)}
@@ -608,7 +614,7 @@ export default function VehicleDetail() {
               </label>
             </div>
 
-            {/* AUTHORITATIVE ITEMIZED PRICE BREAKDOWN */}
+            {/* Estimated price breakdown */}
             {priceCalculations.total > 0 && (
               <div
                 style={{
@@ -677,11 +683,10 @@ export default function VehicleDetail() {
               style={{ opacity: submitting ? 0.7 : 1 }}
             >
               {submitting ? (
-                "Processing Secure Transaction…"
+                "Saving booking request…"
               ) : (
                 <>
-                  Pay {priceCalculations.total > 0 ? money(priceCalculations.total) : ""} &amp;
-                  Confirm Booking <ArrowUpRight size={15} />
+                  Request this ride <ArrowUpRight size={15} />
                 </>
               )}
             </button>
