@@ -127,7 +127,7 @@ export default function AddVehicle() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Failed to publish vehicle listing.");
+        setError(data.error || "Failed to submit vehicle listing for review.");
         setIsSubmitting(false);
         return;
       }
@@ -564,16 +564,16 @@ export default function AddVehicle() {
                 disabled={isSubmitting}
                 onClick={publish}
               >
-                {isSubmitting ? "Persisting to Marketplace…" : "Publish Vehicle Listing"}
+                {isSubmitting ? "Submitting for review…" : "Submit for review"}
                 <Check size={15} />
               </button>
             )}
           </div>
         </section>
 
-        {/* RIGHT PREVIEW CARD SHOWING OWNER'S LIVE CONTENT */}
+        {/* Listing preview */}
         <aside className="wizard-preview">
-          <div className="eyebrow">Real Listing Preview</div>
+          <div className="eyebrow">Listing preview</div>
           <div
             style={{
               marginTop: 16,
