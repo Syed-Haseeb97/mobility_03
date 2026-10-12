@@ -197,9 +197,9 @@ export default function GuidelinesPage() {
           A badge should follow evidence — not a promise.
         </h2>
         <p style={{ maxWidth: 650, color: "#cbd0c2", lineHeight: 1.8, fontSize: 14 }}>
-          Every vehicle displayed in the Mobility directory is cross-checked against authoritative
-          records prior to public bookability. The platform validates provider identity, vehicle RC,
-          and insurance validity periods, with regular audit checks.
+          A listing is not independently verified just because it appears in the directory.
+          Before a public launch, each verification badge must be backed by an auditable review of
+          current registration, insurance, and provider documents.
         </p>
 
         <div
