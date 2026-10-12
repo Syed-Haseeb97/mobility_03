@@ -896,10 +896,14 @@ export const db = {
     excludeBookingId?: string
   ): boolean {
     const data = loadDatabase();
-    const targetStart = new Date(start + "T00:00:00").getTime();
-    const targetEnd = new Date(end + "T23:59:59").getTime();
+    // Rental date ranges are half-open: [pick-up, return). This lets a new
+    // renter pick up on the previous renter's return date.
+    const targetStart = Date.parse(`${start}T00:00:00.000Z`);
+    const targetEnd = Date.parse(`${end}T00:00:00.000Z`);
+    if (!Number.isFinite(targetStart) || !Number.isFinite(targetEnd) || targetEnd <= targetStart) {
+      return false;
+    }
 
-    // Check if vehicle has any overlapping confirmed/active bookings
     const active = data.bookings.filter(
       (b) =>
         b.vehicleId === vehicleId &&
@@ -909,11 +913,10 @@ export const db = {
     );
 
     for (const b of active) {
-      const bStart = new Date(b.start + "T00:00:00").getTime();
-      const bEnd = new Date(b.end + "T23:59:59").getTime();
-      // Overlap condition: start <= bEnd && end >= bStart
-      if (targetStart <= bEnd && targetEnd >= bStart) {
-        return false; // overlapping!
+      const bStart = Date.parse(`${b.start}T00:00:00.000Z`);
+      const bEnd = Date.parse(`${b.end}T00:00:00.000Z`);
+      if (Number.isFinite(bStart) && Number.isFinite(bEnd) && targetStart < bEnd && targetEnd > bStart) {
+        return false;
       }
     }
     return true;
