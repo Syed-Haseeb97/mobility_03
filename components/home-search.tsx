@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { ArrowUpRight, CalendarDays, MapPin, Bike } from "lucide-react";
 
 function localDateString(date = new Date()) {
@@ -11,10 +11,14 @@ function localDateString(date = new Date()) {
 }
 
 export function HomeSearch() {
-  const today = localDateString();
+  const [today, setToday] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setToday(localDateString());
+  }, []);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     if (Boolean(start) !== Boolean(end)) {
@@ -59,11 +63,11 @@ export function HomeSearch() {
         </div>
         <div className="home-search-field">
           <label htmlFor="home-start"><CalendarDays size={15} /> Pick-up</label>
-          <input id="home-start" name="start" type="date" min={today} value={start} onChange={(event) => { setStart(event.target.value); if (end && event.target.value && end <= event.target.value) setEnd(""); setError(""); }} />
+          <input id="home-start" name="start" type="date" min={today || undefined} value={start} onChange={(event) => { setStart(event.target.value); if (end && event.target.value && end <= event.target.value) setEnd(""); setError(""); }} />
         </div>
         <div className="home-search-field">
           <label htmlFor="home-end"><CalendarDays size={15} /> Return</label>
-          <input id="home-end" name="end" type="date" min={start || today} value={end} onChange={(event) => { setEnd(event.target.value); setError(""); }} />
+          <input id="home-end" name="end" type="date" min={start || today || undefined} value={end} onChange={(event) => { setEnd(event.target.value); setError(""); }} />
         </div>
         <button className="home-search-submit" type="submit">
           Find a ride <ArrowUpRight size={18} />
