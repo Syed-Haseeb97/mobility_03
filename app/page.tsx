@@ -8,17 +8,34 @@ import { HomeSearch } from "@/components/home-search";
 
 export const dynamic = "force-dynamic";
 
+function pickFeaturedVehicles(candidates: Vehicle[]): Vehicle[] {
+  const selected: Vehicle[] = [];
+  const add = (vehicle?: Vehicle) => {
+    if (vehicle && !selected.some((item) => item.id === vehicle.id)) selected.push(vehicle);
+  };
+
+  // Show the breadth of the marketplace instead of repeating three bikes by seed order.
+  add(candidates.find((vehicle) => vehicle.fuel.toLowerCase() === "electric" || vehicle.category === "Electric"));
+  add(candidates.find((vehicle) => vehicle.wheels === "2-Wheeler" && vehicle.category === "Bike"));
+  add(candidates.find((vehicle) => vehicle.wheels === "4-Wheeler"));
+  for (const vehicle of candidates) {
+    if (selected.length >= 3) break;
+    add(vehicle);
+  }
+  return selected.slice(0, 3);
+}
+
 function getFeaturedVehicles(): Vehicle[] {
   try {
-    const liveVehicles = db.getVehicles({ status: "approved" });
-    return liveVehicles.slice(0, 3).map((vehicle) => ({
+    const liveVehicles = db.getVehicles({ status: "approved" }).map((vehicle) => ({
       ...vehicle,
       host: vehicle.ownerName,
     }));
+    return pickFeaturedVehicles(liveVehicles);
   } catch {
     // Keep the homepage useful if the local demo store has not been initialized.
+    return pickFeaturedVehicles(seedVehicles.filter((vehicle) => vehicle.status === "approved"));
   }
-  return seedVehicles.filter((vehicle) => vehicle.status === "approved").slice(0, 3);
 }
 
 const steps = [
