@@ -61,6 +61,16 @@ export async function PATCH(
 
     // 2. Handover workflow (Owner checks in customer, verifies license & odometer)
     if (action === "handover") {
+      if (existing.paymentStatus !== "PAID") {
+        return NextResponse.json(
+          { error: "A handover cannot begin until payment is confirmed by a real payment provider." },
+          { status: 409 }
+        );
+      }
+      if (existing.status !== "CONFIRMED" && existing.status !== "HANDOVER_PENDING") {
+        return NextResponse.json({ error: "This booking is not in a handover-ready state." }, { status: 409 });
+      }
+
       const updated = db.updateBookingStatus(id, "ACTIVE_TRIP", {
         handover: {
           handoverTime: new Date().toISOString(),
@@ -81,6 +91,10 @@ export async function PATCH(
 
     // 3. Return workflow (Owner marks vehicle returned & releases deposit)
     if (action === "return") {
+      if (existing.status !== "ACTIVE_TRIP") {
+        return NextResponse.json({ error: "Only an active trip can be checked in as returned." }, { status: 409 });
+      }
+
       const updated = db.updateBookingStatus(id, "COMPLETED", {
         returnRecord: {
           returnTime: new Date().toISOString(),
