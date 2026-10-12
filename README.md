@@ -50,7 +50,7 @@ The identity selector in this prototype is a **demo persona switcher, not authen
 
 - In development, demo flows remain available.
 - In a production build, `middleware.ts` blocks write APIs and demo-only booking, session, payout, review, dispute, admin, and host areas by default.
-- The explicit override `MOBILITY_ENABLE_UNSAFE_DEMO_MODE=true` re-enables those demo flows. Use it only in a private, isolated demonstration environment. **Do not enable it on a public deployment.**
+- The explicit overrides `MOBILITY_ENABLE_UNSAFE_DEMO_MODE=true` and `NEXT_PUBLIC_ENABLE_UNSAFE_DEMO_MODE=true` re-enable demo APIs and the demo navigation UI. Use them only in a private, isolated demonstration environment. **Do not enable them on a public deployment.**
 - New listings begin in `pending_review`; RC and insurance verification are not automatically asserted.
 - Booking requests remain `PENDING` for payment. The application does not collect money, generate a real payment reference, issue refunds, or settle payouts.
 
