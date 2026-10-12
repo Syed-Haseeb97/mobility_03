@@ -51,7 +51,8 @@ The identity selector in this prototype is a **demo persona switcher, not authen
 - In development, demo flows remain available.
 - In a production build, `middleware.ts` blocks write APIs and demo-only booking, session, payout, review, dispute, admin, and host areas by default.
 - The explicit overrides `MOBILITY_ENABLE_UNSAFE_DEMO_MODE=true` and `NEXT_PUBLIC_ENABLE_UNSAFE_DEMO_MODE=true` re-enable demo APIs and the demo navigation UI. Use them only in a private, isolated demonstration environment. **Do not enable them on a public deployment.**
-- The committed data store contains illustrative sample listings and sample booking records; do not treat them as real availability or payment history.
+- The committed data store contains synthetic sample users, listings, and booking records; do not treat them as real availability or payment history.
+- Never put real identity documents, phone numbers, payment references, or payout details in the tracked demo store. Sanitizing the current file does not remove earlier values from Git history.
 - New listings begin in `pending_review`; RC and insurance verification are not automatically asserted.
 - Booking requests remain `PENDING` for payment. The application does not collect money, generate a real payment reference, issue refunds, or settle payouts.
 
