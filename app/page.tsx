@@ -45,6 +45,9 @@ const steps = [
 
 export default function Home() {
   const featuredVehicles = getFeaturedVehicles();
+  const publicPreview =
+    process.env.NODE_ENV === "production" &&
+    process.env.MOBILITY_ENABLE_UNSAFE_DEMO_MODE !== "true";
 
   return (
     <main className="home-page">
@@ -135,6 +138,12 @@ export default function Home() {
           <div><span className="home-section-kicker">START EXPLORING</span><h2>Rides worth<br /><em>a closer look.</em></h2></div>
           <div className="home-featured-side"><p>Explore current approved listings and compare the details before choosing your ride.</p><Link href="/rent" className="home-inline-link">View all rides <ArrowUpRight size={16} /></Link></div>
         </div>
+        {publicPreview && (
+          <div className="home-preview-note" role="status">
+            <span>PREVIEW INVENTORY</span>
+            <p>Illustrative listings are shown for the showcase. Booking requests and payments are disabled on this deployment.</p>
+          </div>
+        )}
         {featuredVehicles.length ? (
           <div className="vehicle-grid home-featured-grid">
             {featuredVehicles.map((vehicle) => <VehicleCard key={vehicle.id} vehicle={vehicle} />)}
