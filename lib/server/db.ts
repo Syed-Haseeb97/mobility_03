@@ -694,10 +694,9 @@ const SEED_PAYOUTS: PayoutRecord[] = [
     amount: 2200,
     platformCommission: 220,
     netSettlement: 1980,
-    status: "PROCESSED",
+    status: "PENDING",
     payoutMethod: "UPI Settlement",
     destinationAccount: "cornerstone@oksbi",
-    utrNumber: "UTR-AXIS-2026100988112",
     createdAt: "2026-10-10T09:00:00Z",
   },
 ];
@@ -1035,10 +1034,9 @@ export const db = {
       amount,
       platformCommission,
       netSettlement,
-      status: "PROCESSED",
+      status: "PENDING",
       payoutMethod,
       destinationAccount,
-      utrNumber: "UTR-IMPS-" + Date.now().toString().slice(-8),
       createdAt: new Date().toISOString(),
     };
     data.payouts.unshift(payout);
