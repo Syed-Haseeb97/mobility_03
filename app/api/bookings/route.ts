@@ -53,6 +53,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!customerPhone?.trim()) {
+      return NextResponse.json(
+        { error: "A contact phone number is required." },
+        { status: 400 }
+      );
+    }
+
     if (!drivingLicense || drivingLicense.trim().length < 6) {
       return NextResponse.json(
         { error: "A valid Driving License (DL) number is mandatory for vehicle handover." },
@@ -135,7 +142,7 @@ export async function POST(request: Request) {
       customerId: customerId || "usr-cust-1",
       customerName: customerName.trim(),
       customerEmail: customerEmail.trim(),
-      customerPhone: customerPhone || "+91 98401 23456",
+      customerPhone: customerPhone.trim(),
       drivingLicense: drivingLicense.trim().toUpperCase(),
 
       ownerId: vehicle.ownerId,
