@@ -70,6 +70,24 @@ export async function PATCH(
       if (existing.status !== "CONFIRMED" && existing.status !== "HANDOVER_PENDING") {
         return NextResponse.json({ error: "This booking is not in a handover-ready state." }, { status: 409 });
       }
+      const startingOdometer = Number(handover?.startingOdometer);
+      const helmetsIssued = Number(handover?.helmetsIssued);
+      if (
+        !Number.isFinite(startingOdometer) ||
+        startingOdometer <= 0 ||
+        !String(handover?.fuelBatteryLevel || "").trim() ||
+        handover?.helmetsIssued === undefined ||
+        String(handover.helmetsIssued).trim() === "" ||
+        !Number.isInteger(helmetsIssued) ||
+        helmetsIssued < 0 ||
+        handover?.licenseInspected !== true ||
+        !String(handover?.handoverNotes || "").trim()
+      ) {
+        return NextResponse.json(
+          { error: "Record the odometer, fuel/battery level, helmet count, licence check, and inspection notes." },
+          { status: 400 }
+        );
+      }
 
       const updated = db.updateBookingStatus(id, "ACTIVE_TRIP", {
         handover: {
