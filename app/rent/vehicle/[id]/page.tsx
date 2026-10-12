@@ -97,7 +97,7 @@ export default function VehicleDetail() {
     vehicle?.category === "Bike" ||
     vehicle?.category === "Scooter";
 
-  // Authoritative price calculations
+  // Estimated price calculations
   const priceCalculations = useMemo(() => {
     if (!vehicle || days <= 0 || !start || !end) {
       return {
@@ -634,7 +634,7 @@ export default function VehicleDetail() {
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <span className="muted">Damage Waiver &amp; Roadside Assist</span>
+                  <span className="muted">Estimated damage waiver</span>
                   <span>{money(priceCalculations.damageWaiver)}</span>
                 </div>
 
