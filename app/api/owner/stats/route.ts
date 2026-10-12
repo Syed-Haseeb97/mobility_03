@@ -86,13 +86,20 @@ export async function POST(request: Request) {
 
     const owner = db.getUserById(ownerId);
     const ownerName = owner?.businessName || owner?.name || "Rental Partner";
+    const payoutDestination = String(destinationAccount || owner?.bankUpi || "").trim();
+    if (!payoutDestination) {
+      return NextResponse.json(
+        { error: "Enter a payout destination before submitting this request." },
+        { status: 400 }
+      );
+    }
 
     const payout = db.createPayout(
       ownerId,
       ownerName,
       Number(amount),
-      payoutMethod || "IMPS / UPI Direct Bank Transfer",
-      destinationAccount || owner?.bankUpi || "registered-account@bank"
+      payoutMethod || "UPI / bank transfer preference",
+      payoutDestination
     );
 
     return NextResponse.json({
