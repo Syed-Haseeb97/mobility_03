@@ -23,7 +23,7 @@ export default function HostIntro() {
               Your <em>terms.</em>
             </h1>
             <p className="hero-copy">
-              Connect your two-wheeler or passenger car with verified campus students and institutional
+              Prepare your two-wheeler or passenger car listing for campus users and institutional
               members. Set your daily and hourly rates, manage your handover calendar, and receive prompt
               settlement disbursements.
             </p>
@@ -57,7 +57,7 @@ export default function HostIntro() {
               {[
                 "Authoritative Pricing & Deposit Rules",
                 "Digital Key Handover & Return Logging",
-                "Automated UPI / IMPS Disbursal Settlements",
+                "Payout tracking (demo only)",
               ].map((x, i) => (
                 <p
                   key={x}
@@ -114,7 +114,7 @@ export default function HostIntro() {
             {
               n: "03",
               title: "Settlement & Payouts",
-              body: "Review completed trips in your financial ledger and withdraw your net rental revenue directly via instant IMPS or UPI settlement.",
+              body: "Review completed trips in your financial ledger and review estimated net revenue. Actual payouts require a connected payment provider and verified settlement process.",
             },
           ].map((x) => (
             <div key={x.n} style={{ borderTop: "1px solid var(--line)", paddingTop: 22 }}>
