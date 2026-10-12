@@ -45,6 +45,9 @@ export default function VehicleDetail() {
   const [helmetOption, setHelmetOption] = useState("1 Helmet Included (Free)");
   const [paymentMethod, setPaymentMethod] = useState<"UPI" | "CARD" | "NETBANKING">("UPI");
   const [today, setToday] = useState("");
+  const demoActionsEnabled =
+    process.env.NODE_ENV !== "production" ||
+    process.env.NEXT_PUBLIC_ENABLE_UNSAFE_DEMO_MODE === "true";
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Submission state
@@ -496,6 +499,11 @@ export default function VehicleDetail() {
           <p className="muted">
             Send a booking request and review the estimated total. Payment is not collected in this demo.
           </p>
+          {!demoActionsEnabled && (
+            <div className="notice" role="status" style={{ marginTop: 14 }}>
+              Preview mode: booking requests are disabled until secure sign-in and payment processing are configured.
+            </div>
+          )}
 
           <form onSubmit={handleBook}>
             <div className="form-stack">
@@ -681,10 +689,12 @@ export default function VehicleDetail() {
             <button
               className="button-primary full-width"
               type="submit"
-              disabled={submitting}
-              style={{ opacity: submitting ? 0.7 : 1 }}
+              disabled={submitting || !demoActionsEnabled}
+              style={{ opacity: submitting || !demoActionsEnabled ? 0.7 : 1 }}
             >
-              {submitting ? (
+              {!demoActionsEnabled ? (
+                "Booking requests unavailable in preview"
+              ) : submitting ? (
                 "Saving booking request…"
               ) : (
                 <>
