@@ -10,11 +10,25 @@ export async function GET(request: Request) {
     const ownerId = searchParams.get("ownerId") || undefined;
     const statusParam = searchParams.get("status") as VehicleListingStatus | undefined;
     const search = searchParams.get("search") || undefined;
+    const start = searchParams.get("start") || undefined;
+    const end = searchParams.get("end") || undefined;
 
-    // For public browse, default to 'approved'. If ownerId or admin specified, allow viewing other statuses
+    if (Boolean(start) !== Boolean(end)) {
+      return NextResponse.json({ error: "Both pick-up and return dates are required for availability search." }, { status: 400 });
+    }
+    if (start && end) {
+      const validDate = (value: string) =>
+        /^\\d{4}-\\d{2}-\\d{2}$/.test(value) &&
+        !Number.isNaN(Date.parse(value)) &&
+        new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value;
+      if (!validDate(start) || !validDate(end) || end <= start) {
+        return NextResponse.json({ error: "Choose valid dates with the return date after pick-up." }, { status: 400 });
+      }
+    }
+
+    // Public browsing only exposes approved listings.
     const status = statusParam || (ownerId ? undefined : "approved");
-
-    const vehicles = db.getVehicles({
+    let vehicles = db.getVehicles({
       city,
       category,
       wheels,
@@ -22,6 +36,10 @@ export async function GET(request: Request) {
       status,
       search,
     });
+
+    if (start && end) {
+      vehicles = vehicles.filter((vehicle) => db.checkAvailability(vehicle.id, start, end));
+    }
 
     return NextResponse.json({ vehicles, count: vehicles.length });
   } catch (err) {
@@ -92,10 +110,10 @@ export async function POST(request: Request) {
       seats: Number(seats) || 2,
       transmission: transmission || "Manual",
       fuel: fuel || "Petrol",
-      registrationNumber: registrationNumber || "TN 09 XX " + Math.floor(1000 + Math.random() * 9000),
-      insuranceValidTill: insuranceValidTill || "2027-12-31",
-      rcVerified: true,
-      insuranceVerified: true,
+      registrationNumber: registrationNumber || "Pending verification",
+      insuranceValidTill: insuranceValidTill || "",
+      rcVerified: false,
+      insuranceVerified: false,
       helmetOption: helmetOption || "1 Helmet Included",
       helmetCondition: helmetCondition || "Certified sanitized helmet provided",
       rating: 5.0,
@@ -104,7 +122,7 @@ export async function POST(request: Request) {
       description: description.trim(),
       hostNotes: hostNotes || "Handover against valid driving license.",
       guidelines: guidelines || "Follow designated campus speed limits and wear protective helmet.",
-      status: "approved", // Automatically approve for seamless production workflow demo
+      status: "pending_review", // New listings must be reviewed before they appear in public search
     });
 
     return NextResponse.json({ vehicle: newVehicle, success: true }, { status: 201 });
