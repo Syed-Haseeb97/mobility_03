@@ -132,7 +132,7 @@ function RentContent() {
           <h1 className="page-heading">
             Find your kind
             <br />
-            of drive.
+            of ride.
           </h1>
         </div>
         <p className="page-intro">
