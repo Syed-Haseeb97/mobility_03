@@ -186,3 +186,9 @@
  .home-map-floating-car{right:2%;bottom:23%}
  .home-route-map .home-art-caption{left:5%;right:5%;bottom:0;padding:9px 10px}
 }
+
+.home-preview-note{display:flex;align-items:flex-start;gap:15px;padding:16px 18px;margin:-10px 0 24px;background:#eef1e4;border-left:3px solid #a5bd47}
+.home-preview-note>span{flex:0 0 auto;font:9px var(--mono);letter-spacing:1px;color:#657536;padding-top:3px}
+.home-preview-note p{margin:0;color:#707568;font-size:11px;line-height:1.7}
+.preview-notice{display:flex;gap:13px;align-items:flex-start;margin:0 0 20px;padding:14px 16px;background:#eef1e4;border-left:3px solid #a5bd47;color:#5f6c39;font-size:12px;line-height:1.7}
+.preview-notice strong{flex:0 0 auto;font-size:11px}
