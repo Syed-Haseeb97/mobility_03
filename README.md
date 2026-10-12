@@ -1,90 +1,88 @@
-# MOBILITY — Production Vehicle Rental Marketplace
+# MOBILITY
 
-> **Campus & Urban Two-Wheeler & Passenger Vehicle Rental Exchange**  
-> *"YOUR CAMPUS, IN MOTION"*
+**Campus-first mobility marketplace** — discover bikes, scooters, electric rides, and cars for campus life and nearby trips.
 
----
+MOBILITY is a Next.js/React prototype for a campus and local vehicle-rental marketplace. The interface supports public listing discovery and includes demo flows for renters, vehicle owners, and platform operations.
 
-## 1. Project Overview & Architecture
+> **Production status: not ready to accept real bookings or payments.** The current repository uses demo identities and a local JSON store, and it does not integrate a real payment provider. Public production deployments fail closed for demo-only dashboards and write APIs until real authentication, authorization, persistence, and payments are configured.
 
-Mobility is a fully functional, production-ready vehicle rental marketplace engineered for college campuses, tech parks, and urban transit edges. It connects student and faculty renters with authorized vehicle owners and commercial fleet operators.
+## What the app includes
 
-### Key Highlights
-- **Formal Automotive Identity:** Replaced all sensationalist and informal toy gimmicks (such as *"mileage king"*, burnout animations, wheelie simulations, and synthesizer horns) with an executive, institutional inspection studio featuring 3D perspective parallax, technical dimension sheets, and regulatory verification status.
-- **Dynamic Owner-Authored Listings:** Every listing features descriptions, pickup guidelines, and usage terms written directly by the host who lists the vehicle for rent.
-- **Persistent Backend & Database:** Backed by server-side atomic persistence (`data/mobility-store.json`), supporting real multi-user state, booking concurrency locks, and financial ledgers.
-- **Three Authenticated Application Roles:**
-  - **Customer / Renter:** Discover vehicles by campus zone, inspect documents, calculate authoritative rental rates, provide Driving License (DL), reserve with concurrency protection, access itemized tax invoices, and rate trips.
-  - **Vehicle Owner / Rental Partner:** Comprehensive 3-step listing builder, live preview, garage management, key handover digital checklist (odometer, fuel level, helmet issue), return check-in with deposit release, revenue tracking (10% platform fee), and automated settlement requests.
-  - **Platform Administrator:** Central operations portal to audit listings, approve/suspend vehicles, verify driver KYC credentials, oversee active campus trips, and manage payouts.
+- Campus-first homepage with ride search, categories, featured approved listings, how-it-works steps, and an owner-partner CTA.
+- Vehicle marketplace with text search, location/type filters, pricing filters, sorting, and date-based availability filtering.
+- Vehicle detail and booking-request flow.
+- Demo renter, owner, and admin views for exploring the intended workflow.
+- Listing review status and document-verification flags.
+- Responsive layouts and lightweight CSS animation that respects reduced-motion preferences.
 
----
+## Tech stack
 
-## 2. Application Roles & Capabilities
+- Next.js 15 App Router
+- React 19 and TypeScript
+- Tailwind CSS v4 plus custom CSS
+- Lucide icons
+- Node filesystem JSON store for local/demo data
 
-| Capability | Customer | Vehicle Owner | Administrator |
-|---|:---:|:---:|:---:|
-| **Browse & Filter Vehicles** | ✓ | ✓ | ✓ |
-| **Inspect RC & Commercial Insurance** | ✓ | ✓ | ✓ |
-| **Book with Concurrency Protection** | ✓ | — | Manual override |
-| **Download Tax Invoice / Receipt** | ✓ | — | Audit access |
-| **Submit Ride Reviews** | ✓ | — | Moderation |
-| **List Vehicle with Custom Description** | — | ✓ | Approval queue |
-| **Key Handover & Return Checklist** | — | ✓ | Audit log |
-| **Earnings Ledger & Disbursal Requests** | — | ✓ | Settlement dispatch |
-| **KYC Credential Authentication** | Submit DL | Submit KYC | Approve / Revoke |
+## Run locally
 
----
-
-## 3. Technology Stack
-
-- **Framework:** Next.js 15 (App Router, Server Actions & API Routes)
-- **UI & State:** React 19, TypeScript 5.8
-- **Styling:** Tailwind CSS v4, PostCSS, Custom DM Mono & Manrope Typography
-- **Graphics & 3D Parallax:** Three.js, Lucide Icons
-- **Persistence:** Server-side atomic JSON database store (`lib/server/db.ts`) with concurrency checking
-
----
-
-## 4. Getting Started Locally
+Requirements: Node.js compatible with Next.js 15 and npm.
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Type-check & Build
-npm run typecheck
-npm run build
-
-# 3. Start production server
-npm start
-# OR launch local development
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your web browser.
+Open [http://localhost:3000](http://localhost:3000).
 
----
+Before proposing changes, run the available checks:
 
-## 5. Main Route Directory
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
 
-- `/` — Homepage featuring the 3D Vehicle Fleet Inspector, full-viewport showcase carousel, campus search panel, and curated verified inventory.
-- `/rent` — Vehicle marketplace catalog with campus zone filter, vehicle type filter (2-Wheeler vs 4-Wheeler), category, and sort controls.
-- `/rent/vehicle/[id]` — Detailed vehicle profile showing owner's custom written description, pickup bay coordinates, document verification badges, ISI helmet option, and authoritative checkout.
-- `/rent/bookings` — Customer trips dashboard: upcoming rides, active journeys, completed trips, tax invoices / receipts, cancellation with automated refund calculation, and star reviews.
-- `/host/dashboard` — Partner command center: live fleet stats, gross bookings, 10% platform commission, pending settlements, digital key handover desk, and disbursal requests.
-- `/host/listings` — Partner garage management: view active listings, toggle pause/active status, and view live vehicle profiles.
-- `/host/add-vehicle` — 3-step listing builder with custom host description editor, helmet arrangement, pricing, and real-time card preview.
-- `/list-your-vehicle` — Partner program onboarding and operational architecture.
-- `/guidelines` — Formal campus ground rules, student pre-departure checklist, partner hygiene standards, and verification evidence philosophy.
-- `/admin` — Platform operations desk: vehicle moderation queue, KYC credential approvals, master booking ledger, and settlement disbursals.
-- `/api/...` — REST endpoints for auth sessions, vehicle search & creation, bookings, handovers, reviews, payouts, and admin moderation.
+The scripts above are configured in `package.json`. A successful local build is necessary but does not replace a deployed end-to-end test.
 
----
+## Demo mode and production safety
 
-## 6. Regulatory & Safety Standards
+The identity selector in this prototype is a **demo persona switcher, not authentication**. It stores a selected user ID in the browser and must not be treated as proof of identity.
 
-- **Registration Certificate (RC):** Cross-referenced against state transport database.
-- **Commercial Insurance:** Comprehensive cover with third-party liability and roadside assistance.
-- **Mandatory ISI Helmet Policy:** Every two-wheeler rental includes clean, sanitized, certified protective headgear.
-- **Campus Speed Limits:** Strict 25 km/h campus perimeter speed adherence logged in rental guidelines.
+- In development, demo flows remain available.
+- In a production build, `middleware.ts` blocks write APIs and demo-only booking, session, payout, review, dispute, admin, and host areas by default.
+- The explicit overrides `MOBILITY_ENABLE_UNSAFE_DEMO_MODE=true` and `NEXT_PUBLIC_ENABLE_UNSAFE_DEMO_MODE=true` re-enable demo APIs and the demo navigation UI. Use them only in a private, isolated demonstration environment. **Do not enable them on a public deployment.**
+- The committed data store contains synthetic sample users, listings, and booking records; do not treat them as real availability or payment history.
+- Never put real identity documents, phone numbers, payment references, or payout details in the tracked demo store. Sanitizing the current file does not remove earlier values from Git history.
+- New listings begin in `pending_review`; RC and insurance verification are not automatically asserted.
+- Booking requests remain `PENDING` for payment. The application does not collect money, generate a real payment reference, issue refunds, or settle payouts.
+
+The production guard is a safety boundary for this prototype, not a replacement for proper authentication and authorization. Before a public launch, integrate a real identity provider or secure session implementation and check user ownership/roles inside every sensitive route and data-access operation.
+
+## Known production prerequisites
+
+These must be completed and tested before accepting real users, vehicle documents, bookings, or money:
+
+1. **Authentication and authorization:** server-managed sessions, secure cookies, role checks, and ownership checks for each route and mutation.
+2. **Payments:** integrate a payment provider, verify signed webhooks server-side, use idempotency keys, and implement cancellation/refund/settlement reconciliation.
+3. **Database:** replace filesystem JSON storage with a managed database and transactional availability constraints. The current store is for a single-instance demo and is not suitable for serverless or multi-instance production.
+4. **Document verification:** implement a real review process and evidence audit trail before displaying verification badges or approving listings.
+5. **Legal and operations:** confirm rental eligibility, insurance scope, local requirements, deposit/refund policy, terms, privacy policy, incident handling, and customer support with qualified advisers.
+6. **Operational readiness:** add automated tests, rate limiting, request validation, monitoring, backups, recovery procedures, and a tested deployment pipeline.
+
+## Important routes
+
+- `/` — campus-first landing page
+- `/rent` — vehicle discovery and filtering
+- `/rent/vehicle/[id]` — listing detail and demo booking request
+- `/rent/bookings` — demo renter dashboard
+- `/host/dashboard`, `/host/listings`, `/host/add-vehicle` — demo owner tools
+- `/admin` — demo operations console
+- `/guidelines` — rental and safety guidance
+
+## Design direction
+
+The landing page leads with the mobility service and the renter's task—not a full-screen carousel of specific vehicle models. Its visual language combines a deep forest-green canvas, warm neutral surfaces, lime accents, restrained orbit/floating animations, direct search controls, and clear paths for renters and vehicle partners. Motion is decorative and reduced when the visitor requests reduced motion.
+
+## Contribution workflow
+
+Work on a feature branch, run type-check/lint/build checks, and review the diff before opening a pull request. Do not merge to `main` until the change has been reviewed and the required checks pass.

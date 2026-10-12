@@ -95,7 +95,7 @@ export default function AdminPage() {
           </h1>
           <p className="page-intro">
             Role-restricted control center for auditing regulatory compliance, authenticating
-            partner documentation, approving listings, and managing financial settlement reconciliations.
+            reviewing listings, handling demo booking requests, and inspecting illustrative payout records.
           </p>
         </div>
 
@@ -151,7 +151,7 @@ export default function AdminPage() {
             Total Bookings
           </span>
           <strong>{data?.metrics.totalBookings || 0}</strong>
-          <small>Authoritative reservations</small>
+          <small>Booking requests</small>
         </div>
 
         <div className="host-stat">
@@ -173,7 +173,7 @@ export default function AdminPage() {
           <strong style={{ fontSize: 22, color: "#3f5412" }}>
             {money(data?.metrics.platformCommissionCollected || 0)}
           </strong>
-          <small>Institutional revenue</small>
+          <small>Recorded paid totals (demo)</small>
         </div>
       </div>
 
@@ -183,7 +183,7 @@ export default function AdminPage() {
           { key: "listings", label: `Vehicle Listings (${data?.vehicles?.length || 0})` },
           { key: "kyc", label: `User & Partner KYC (${data?.users?.length || 0})` },
           { key: "bookings", label: `Transactions & Bookings (${data?.bookings?.length || 0})` },
-          { key: "payouts", label: `Disbursal Settlements (${data?.payouts?.length || 0})` },
+          { key: "payouts", label: `Payout Requests (${data?.payouts?.length || 0})` },
         ].map((tab) => (
           <button
             key={tab.key}

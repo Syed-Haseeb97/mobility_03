@@ -5,9 +5,9 @@ import { SiteHeader } from "@/components/site-header";
 import { SessionProvider } from "@/components/session-provider";
 
 export const metadata: Metadata = {
-  title: "MOBILITY — Production Vehicle Rental Marketplace",
+  title: "MOBILITY — Your campus. Your next move.",
   description:
-    "Campus & urban two-wheeler and vehicle rental marketplace connecting verified customers with authorized partners and rental operators.",
+    "Find bikes, scooters, electric rides, and cars for campus life and nearby trips.",
   applicationName: "MOBILITY",
 };
 
@@ -23,10 +23,7 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
+
       </head>
       <body>
         <SessionProvider>
@@ -50,7 +47,7 @@ export default function RootLayout({
                     M<span>O</span>BILITY<span className="wordmark-dot">.</span>
                   </Link>
                   <p style={{ marginTop: 12, lineHeight: 1.7, color: "#a7ab9e" }}>
-                    Campus &amp; urban vehicle rental marketplace. Verified hosts, authoritative reservation protection, transparent insurance, and helmet-compliant rides.
+                    A campus-first marketplace to discover local rides, compare listings, and plan your next trip with clearer information.
                   </p>
                 </div>
                 <div style={{ display: "flex", gap: 36, flexWrap: "wrap" }}>
@@ -132,9 +129,9 @@ export default function RootLayout({
                   color: "#8b9084",
                 }}
               >
-                <span>© 2026 MOBILITY PLATFORM · OPERATING IN FULL COMPLIANCE WITH MV ACT &amp; CAMPUS TRANSPORTATION POLICIES</span>
+                <span>© 2026 MOBILITY · CAMPUS-FIRST MOBILITY MARKETPLACE</span>
                 <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: 1 }}>
-                  SECURE TRANSACTIONS · AUTHENTICATED ROLES
+                  CLEAR LISTINGS · SAFER TRIP PLANNING
                 </span>
               </div>
             </div>

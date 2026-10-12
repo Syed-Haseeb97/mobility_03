@@ -10,13 +10,15 @@ export async function GET(request: Request) {
     const approvedVehicles = store.vehicles.filter((v) => v.status === "approved").length;
 
     const totalBookings = store.bookings.length;
-    const totalGrossRevenue = store.bookings
-      .filter((b) => b.status !== "CANCELLED")
-      .reduce((sum, b) => sum + b.total, 0);
+    const paidBookings = store.bookings.filter(
+      (booking) => booking.paymentStatus === "PAID" && booking.status !== "CANCELLED"
+    );
+    const totalGrossRevenue = paidBookings.reduce((sum, booking) => sum + booking.total, 0);
 
-    const platformCommissionCollected = store.bookings
-      .filter((b) => b.status !== "CANCELLED")
-      .reduce((sum, b) => sum + b.platformFee, 0);
+    const platformCommissionCollected = paidBookings.reduce(
+      (sum, booking) => sum + booking.platformFee,
+      0
+    );
 
     const pendingKycUsers = store.users.filter((u) => u.kycStatus === "pending").length;
 

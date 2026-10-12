@@ -44,6 +44,10 @@ export default function VehicleDetail() {
   );
   const [helmetOption, setHelmetOption] = useState("1 Helmet Included (Free)");
   const [paymentMethod, setPaymentMethod] = useState<"UPI" | "CARD" | "NETBANKING">("UPI");
+  const [today, setToday] = useState("");
+  const demoActionsEnabled =
+    process.env.NODE_ENV !== "production" ||
+    process.env.NEXT_PUBLIC_ENABLE_UNSAFE_DEMO_MODE === "true";
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Submission state
@@ -53,6 +57,11 @@ export default function VehicleDetail() {
     message: string;
     bookingId?: string;
   } | null>(null);
+
+  useEffect(() => {
+    const now = new Date();
+    setToday(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`);
+  }, []);
 
   // Synchronize with currentUser when loaded
   useEffect(() => {
@@ -91,7 +100,7 @@ export default function VehicleDetail() {
     vehicle?.category === "Bike" ||
     vehicle?.category === "Scooter";
 
-  // Authoritative price calculations
+  // Estimated price calculations
   const priceCalculations = useMemo(() => {
     if (!vehicle || days <= 0 || !start || !end) {
       return {
@@ -192,9 +201,7 @@ export default function VehicleDetail() {
 
       setBookingNotice({
         type: "success",
-        message: `Booking Confirmed! Reference: ${data.booking.id}. Payment of ${money(
-          data.booking.total
-        )} processed securely via ${paymentMethod}.`,
+        message: `Request saved: ${data.booking.id}. Payment is still pending; no money has been collected in this demo.`,
         bookingId: data.booking.id,
       });
 
@@ -236,7 +243,7 @@ export default function VehicleDetail() {
   return (
     <main className="page-shell">
       <Link className="text-link" href="/rent">
-        <ArrowLeft size={15} /> Back to verified fleet
+        <ArrowLeft size={15} /> Back to all rides
       </Link>
 
       {/* TOP HEADER */}
@@ -251,7 +258,7 @@ export default function VehicleDetail() {
             {vehicle.name}
           </h1>
           <p className="page-intro" style={{ marginTop: 8 }}>
-            ★ {vehicle.rating.toFixed(2)} · {vehicle.trips} verified trips · Hosted by{" "}
+            ★ {vehicle.rating.toFixed(2)} · {vehicle.trips} trips · Hosted by{" "}
             <strong>{vehicle.host}</strong>
           </p>
         </div>
@@ -471,11 +478,13 @@ export default function VehicleDetail() {
                   alignItems: "center",
                 }}
               >
-                <ShieldCheck size={18} className="text-[#637d1e]" />
+                {vehicle.insuranceVerified ? <ShieldCheck size={18} className="text-[#637d1e]" /> : <ShieldAlert size={18} className="text-[#9a6b24]" />}
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 12 }}>Commercial Insurance</div>
+                  <div style={{ fontWeight: 700, fontSize: 12 }}>Insurance details</div>
                   <div className="muted" style={{ fontSize: 11 }}>
-                    {vehicle.insuranceValidTill || "Valid Insurance Policy"}
+                    {vehicle.insuranceVerified && vehicle.insuranceValidTill
+                      ? `Recorded validity: ${vehicle.insuranceValidTill}`
+                      : "Verification pending — confirm coverage with the host before booking."}
                   </div>
                 </div>
               </div>
@@ -488,8 +497,13 @@ export default function VehicleDetail() {
           <div className="eyebrow">Reservation Desk</div>
           <h2>Configure Rental</h2>
           <p className="muted">
-            Instant booking with server-side concurrency check and verifiable receipt.
+            Send a booking request and review the estimated total. Payment is not collected in this demo.
           </p>
+          {!demoActionsEnabled && (
+            <div className="notice" role="status" style={{ marginTop: 14 }}>
+              Preview mode: booking requests are disabled until secure sign-in and payment processing are configured.
+            </div>
+          )}
 
           <form onSubmit={handleBook}>
             <div className="form-stack">
@@ -498,7 +512,7 @@ export default function VehicleDetail() {
                 <input
                   type="date"
                   required
-                  min={new Date().toISOString().slice(0, 10)}
+                  min={today || undefined}
                   value={start}
                   onChange={(e) => {
                     setStart(e.target.value);
@@ -575,7 +589,7 @@ export default function VehicleDetail() {
               )}
 
               <label>
-                Payment Method
+                Preferred payment method (demo only)
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value as any)}
@@ -610,7 +624,7 @@ export default function VehicleDetail() {
               </label>
             </div>
 
-            {/* AUTHORITATIVE ITEMIZED PRICE BREAKDOWN */}
+            {/* Estimated price breakdown */}
             {priceCalculations.total > 0 && (
               <div
                 style={{
@@ -628,7 +642,7 @@ export default function VehicleDetail() {
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <span className="muted">Damage Waiver &amp; Roadside Assist</span>
+                  <span className="muted">Estimated damage waiver</span>
                   <span>{money(priceCalculations.damageWaiver)}</span>
                 </div>
 
@@ -675,15 +689,16 @@ export default function VehicleDetail() {
             <button
               className="button-primary full-width"
               type="submit"
-              disabled={submitting}
-              style={{ opacity: submitting ? 0.7 : 1 }}
+              disabled={submitting || !demoActionsEnabled}
+              style={{ opacity: submitting || !demoActionsEnabled ? 0.7 : 1 }}
             >
-              {submitting ? (
-                "Processing Secure Transaction…"
+              {!demoActionsEnabled ? (
+                "Booking requests unavailable in preview"
+              ) : submitting ? (
+                "Saving booking request…"
               ) : (
                 <>
-                  Pay {priceCalculations.total > 0 ? money(priceCalculations.total) : ""} &amp;
-                  Confirm Booking <ArrowUpRight size={15} />
+                  Request this ride <ArrowUpRight size={15} />
                 </>
               )}
             </button>
@@ -708,7 +723,7 @@ export default function VehicleDetail() {
               }}
             >
               <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                {bookingNotice.type === "success" ? "✓ Reservation Confirmed" : "Notice"}
+                {bookingNotice.type === "success" ? "✓ Request Saved · Payment Pending" : "Notice"}
               </div>
               {bookingNotice.message}
 

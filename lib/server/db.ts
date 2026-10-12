@@ -77,6 +77,7 @@ export interface VehicleRecord {
 }
 
 export type BookingStatus =
+  | "PAYMENT_PENDING"
   | "CONFIRMED"
   | "HANDOVER_PENDING"
   | "ACTIVE_TRIP"
@@ -147,7 +148,7 @@ export interface BookingRecord {
   total: number;
 
   // Payment
-  paymentStatus: "PAID" | "REFUNDED" | "PENDING";
+  paymentStatus: "PAID" | "REFUNDED" | "PENDING" | "REFUND_PENDING";
   paymentMethod: "UPI" | "CARD" | "NETBANKING";
   paymentTxnId: string;
   paidAt: string;
@@ -212,80 +213,80 @@ function ensureDirectoryExistence(filePath: string) {
 const SEED_USERS: UserProfile[] = [
   {
     id: "usr-cust-1",
-    name: "Ananya Raman",
-    email: "ananya.r@iiitt.ac.in",
-    phone: "+91 98401 23456",
+    name: "Demo Renter 01",
+    email: "demo-customer-01@example.invalid",
+    phone: "0000000001",
     role: "customer",
-    kycStatus: "verified",
+    kycStatus: "pending",
     kycDocType: "Driving License & College ID",
-    drivingLicense: "TN-09-2023-0045192",
-    campusAffiliation: "IIITT Student (B.Tech CSE)",
+    drivingLicense: "DEMO-LICENSE-001",
+    campusAffiliation: "Demo Campus",
     rating: 4.95,
   },
   {
     id: "usr-host-1",
-    name: "Ramesh Sundaram",
-    businessName: "Juniper Two-Wheel Hire",
-    email: "ramesh.juniper@gmail.com",
-    phone: "+91 94441 78901",
+    name: "Demo Host 02",
+    businessName: "Demo Rental Partner 02",
+    email: "demo-owner-02@example.invalid",
+    phone: "0000000002",
     role: "owner",
-    kycStatus: "verified",
+    kycStatus: "pending",
     kycDocType: "GSTIN & Commercial Rental Authorization",
-    drivingLicense: "TN-01-2015-0012891",
-    campusAffiliation: "Authorized Campus Partner (North Gate)",
-    bankUpi: "juniperhire@icici",
+    drivingLicense: "DEMO-LICENSE-002",
+    campusAffiliation: "Demo Campus",
+    bankUpi: "demo-owner-02@invalid",
     rating: 4.96,
   },
   {
     id: "usr-host-2",
-    name: "Karthik Venkatesh",
-    businessName: "Cornerstone Mobility Co.",
-    email: "karthik.cornerstone@gmail.com",
-    phone: "+91 98802 34567",
+    name: "Demo Host 03",
+    businessName: "Demo Rental Partner 03",
+    email: "demo-owner-03@example.invalid",
+    phone: "0000000003",
     role: "owner",
-    kycStatus: "verified",
+    kycStatus: "pending",
     kycDocType: "Business Registration & Owner KYC",
-    drivingLicense: "KA-04-2018-0098234",
-    campusAffiliation: "Partnered Rental Operator",
-    bankUpi: "cornerstone@oksbi",
+    drivingLicense: "DEMO-LICENSE-003",
+    campusAffiliation: "Demo Campus",
+    bankUpi: "demo-owner-03@invalid",
     rating: 4.92,
   },
   {
     id: "usr-host-3",
-    name: "Anand Nair",
-    businessName: "Cedar Lane Rentals",
-    email: "anand.cedarlane@gmail.com",
-    phone: "+91 97450 67890",
+    name: "Demo Host 04",
+    businessName: "Demo Rental Partner 04",
+    email: "demo-owner-04@example.invalid",
+    phone: "0000000004",
     role: "owner",
-    kycStatus: "verified",
+    kycStatus: "pending",
     kycDocType: "Commercial Fleet License",
-    drivingLicense: "KL-07-2016-0044123",
-    campusAffiliation: "South Transit Partner",
-    bankUpi: "anand.nair@hdfcbank",
+    drivingLicense: "DEMO-LICENSE-004",
+    campusAffiliation: "Demo Campus",
+    bankUpi: "demo-owner-04@invalid",
     rating: 4.98,
   },
   {
     id: "usr-host-4",
-    name: "Pooja Sharma",
-    businessName: "CleanRide EV Hub",
-    email: "pooja.cleanride@gmail.com",
-    phone: "+91 99001 12233",
+    name: "Demo Host 05",
+    businessName: "Demo Rental Partner 05",
+    email: "demo-owner-05@example.invalid",
+    phone: "0000000005",
     role: "owner",
-    kycStatus: "verified",
+    kycStatus: "pending",
     kycDocType: "Electric Mobility Fleet Authorization",
-    drivingLicense: "TN-37-2020-0081290",
-    campusAffiliation: "Green Campus Initiative Partner",
-    bankUpi: "cleanride@axisbank",
+    drivingLicense: "DEMO-LICENSE-005",
+    campusAffiliation: "Demo Campus",
+    bankUpi: "demo-owner-05@invalid",
     rating: 4.89,
   },
   {
     id: "usr-admin-1",
-    name: "Platform Operations Desk",
-    email: "ops@mobility-iiitt.ac.in",
-    phone: "+91 98400 00001",
+    name: "Demo Operator 06",
+    email: "demo-admin-06@example.invalid",
+    phone: "0000000006",
     role: "admin",
-    kycStatus: "verified",
-    campusAffiliation: "IIITT Campus Transport Office",
+    kycStatus: "pending",
+    campusAffiliation: "Demo Campus",
   },
 ];
 
@@ -294,7 +295,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
   {
     id: "v1",
     ownerId: "usr-host-1",
-    ownerName: "Ramesh Sundaram (Juniper Hire)",
+    ownerName: "Demo Host",
     ownerType: "commercial_rental",
     name: "Splendor Plus",
     make: "Hero",
@@ -303,17 +304,17 @@ const SEED_VEHICLES: VehicleRecord[] = [
     wheels: "2-Wheeler",
     city: "Chennai",
     campusZone: "North Campus Gate / Transit Hub",
-    pickupAddress: "Kiosk #3, North Gate Commercial Complex, Near Main Entrance",
+    pickupAddress: "Campus pickup point",
     price: 450,
     hourlyPrice: 65,
     deposit: 500,
     seats: 2,
     transmission: "Manual",
     fuel: "Petrol",
-    registrationNumber: "TN 09 BX 4412",
-    insuranceValidTill: "2027-03-31",
-    rcVerified: true,
-    insuranceVerified: true,
+    registrationNumber: "DEMO-RC-001",
+    insuranceValidTill: "",
+    rcVerified: false,
+    insuranceVerified: false,
     helmetOption: "1 Helmet Included",
     helmetCondition: "ISI Certified Steelbird helmet with sanitized interior, visor intact",
     rating: 4.95,
@@ -321,8 +322,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
     image: "/vehicles/hero-splendor.png",
     description:
       "Well-maintained 97.2cc commuter motorcycle. Features reliable drum braking, smooth gear shifts, and exceptional fuel efficiency. Ideal for academic campus errands, local hostel transit, and city rail terminal connections.",
-    hostNotes:
-      "Pickup from North Gate parking kiosk. Valid two-wheeler driving license required at handover. Fuel level is recorded at handover and must be returned with equal level.",
+    hostNotes: "Sample host notes for demonstration only.",
     guidelines:
       "Helmet mandatory at all times. Pillion rider must wear a certified helmet. Maximum speed limit inside campus grounds is 25 km/h.",
     status: "approved",
@@ -331,7 +331,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
   {
     id: "v2",
     ownerId: "usr-host-2",
-    ownerName: "Karthik Venkatesh (Cornerstone)",
+    ownerName: "Demo Host",
     ownerType: "commercial_rental",
     name: "Pulsar 150",
     make: "Bajaj",
@@ -340,17 +340,17 @@ const SEED_VEHICLES: VehicleRecord[] = [
     wheels: "2-Wheeler",
     city: "Bengaluru",
     campusZone: "Student Quarter / Hostel Block D",
-    pickupAddress: "Cornerstone Hub, Opposite Hostel Block D Parking Bay",
+    pickupAddress: "Campus pickup point",
     price: 650,
     hourlyPrice: 90,
     deposit: 1000,
     seats: 2,
     transmission: "Manual",
     fuel: "Petrol",
-    registrationNumber: "KA 04 EL 9120",
-    insuranceValidTill: "2027-06-30",
-    rcVerified: true,
-    insuranceVerified: true,
+    registrationNumber: "DEMO-RC-002",
+    insuranceValidTill: "",
+    rcVerified: false,
+    insuranceVerified: false,
     helmetOption: "1 Helmet Included",
     helmetCondition: "Studds Ninja ISI-certified full-face helmet provided",
     rating: 4.92,
@@ -358,8 +358,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
     image: "/vehicles/bajaj-pulsar.png",
     description:
       "150cc DTS-i twin spark motorcycle with front disc brake and digital instrument cluster. Fully serviced with fresh engine oil and verified tire tread. Well-suited for longer inter-campus transit, research park visits, and city commutes.",
-    hostNotes:
-      "Handover available daily between 7:30 AM and 8:30 PM. Instant verification with student ID and original DL.",
+    hostNotes: "Sample host notes for demonstration only.",
     guidelines:
       "Strictly no stunt riding or reckless maneuvers. Vehicle is equipped with standard telemetry for safety compliance.",
     status: "approved",
@@ -368,7 +367,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
   {
     id: "v3",
     ownerId: "usr-host-3",
-    ownerName: "Anand Nair (Cedar Lane)",
+    ownerName: "Demo Host",
     ownerType: "commercial_rental",
     name: "Classic 350",
     make: "Royal Enfield",
@@ -377,17 +376,17 @@ const SEED_VEHICLES: VehicleRecord[] = [
     wheels: "2-Wheeler",
     city: "Kochi",
     campusZone: "West Campus Promenade",
-    pickupAddress: "Cedar Lane Depot, West Campus Gate #2",
+    pickupAddress: "Campus pickup point",
     price: 1100,
     hourlyPrice: 160,
     deposit: 2000,
     seats: 2,
     transmission: "Manual",
     fuel: "Petrol",
-    registrationNumber: "KL 07 CD 2309",
-    insuranceValidTill: "2027-05-15",
-    rcVerified: true,
-    insuranceVerified: true,
+    registrationNumber: "DEMO-RC-003",
+    insuranceValidTill: "",
+    rcVerified: false,
+    insuranceVerified: false,
     helmetOption: "2 Helmets Included",
     helmetCondition: "Two Royal Enfield ISI open-face helmets with protective visors",
     rating: 4.98,
@@ -395,8 +394,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
     image: "/vehicles/royal-enfield.png",
     description:
       "349cc J-Series touring motorcycle. Upright ergonomic riding posture, dual-channel ABS, and robust build. Maintained meticulously through authorized service centers for comfortable suburban trips and weekend research travel.",
-    hostNotes:
-      "Original physical driving license must be inspected upon key collection. Full vehicle inspection sheet signed before departure.",
+    hostNotes: "Sample host notes for demonstration only.",
     guidelines:
       "Dual helmets included and required. Adhere strictly to state highway and institutional speed regulations.",
     status: "approved",
@@ -405,7 +403,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
   {
     id: "v4",
     ownerId: "usr-host-4",
-    ownerName: "Pooja Sharma (CleanRide EV)",
+    ownerName: "Demo Host",
     ownerType: "commercial_rental",
     name: "450X Gen 3",
     make: "Ather",
@@ -414,17 +412,17 @@ const SEED_VEHICLES: VehicleRecord[] = [
     wheels: "2-Wheeler",
     city: "Coimbatore",
     campusZone: "Library Approach / Tech Park Terminal",
-    pickupAddress: "CleanRide Charging Station, East Library Plaza",
+    pickupAddress: "Campus pickup point",
     price: 550,
     hourlyPrice: 75,
     deposit: 800,
     seats: 2,
     transmission: "Automatic",
     fuel: "Electric",
-    registrationNumber: "TN 37 EV 1044",
-    insuranceValidTill: "2027-08-20",
-    rcVerified: true,
-    insuranceVerified: true,
+    registrationNumber: "DEMO-RC-004",
+    insuranceValidTill: "",
+    rcVerified: false,
+    insuranceVerified: false,
     helmetOption: "1 Helmet Included",
     helmetCondition: "Vega Crux ISI helmet with quick-release chin strap",
     rating: 4.89,
@@ -432,8 +430,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
     image: "/vehicles/ather-450x.png",
     description:
       "All-electric smart scooter equipped with 3.7 kWh battery pack, connected navigation, and regenerative braking. Quiet, zero-emission campus mobility with 105 km real-world range per charge. Provided with portable home/hostel charger cable.",
-    hostNotes:
-      "Vehicle is issued at 100% state of charge. Free charging available at the CleanRide charging dock at the East Library Plaza.",
+    hostNotes: "Sample host notes for demonstration only.",
     guidelines:
       "Please return with at least 20% state of charge. Helmet required for operator and passenger.",
     status: "approved",
@@ -444,7 +441,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
   {
     id: "v5",
     ownerId: "usr-host-4",
-    ownerName: "Pooja Sharma (CleanRide)",
+    ownerName: "Demo Host",
     ownerType: "individual",
     name: "Nano Twist",
     make: "Tata",
@@ -453,25 +450,24 @@ const SEED_VEHICLES: VehicleRecord[] = [
     wheels: "4-Wheeler",
     city: "Coimbatore",
     campusZone: "Student Quarter / Hostel Area",
-    pickupAddress: "Residential Staff Enclave, Bay 12",
+    pickupAddress: "Campus pickup point",
     price: 800,
     hourlyPrice: 110,
     deposit: 1500,
     seats: 4,
     transmission: "Manual",
     fuel: "Petrol",
-    registrationNumber: "TN 37 CB 5521",
-    insuranceValidTill: "2027-01-20",
-    rcVerified: true,
-    insuranceVerified: true,
+    registrationNumber: "DEMO-RC-005",
+    insuranceValidTill: "",
+    rcVerified: false,
+    insuranceVerified: false,
     helmetOption: "Not Applicable",
     rating: 4.86,
     trips: 37,
     image: "/vehicles/tata-nano.png",
     description:
       "Compact urban city car featuring power steering, air conditioning, and outstanding maneuverability. Perfect for student project team transportation, campus grocery supplies, and narrow campus-edge access roads.",
-    hostNotes:
-      "Clean interior with sanitized touchpoints. Spare tire and toolkit checked in rear compartment.",
+    hostNotes: "Sample host notes for demonstration only.",
     guidelines:
       "Seatbelts mandatory for all 4 occupants. No smoking or consumption inside vehicle.",
     status: "approved",
@@ -480,7 +476,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
   {
     id: "v6",
     ownerId: "usr-host-2",
-    ownerName: "Karthik Venkatesh (Cornerstone)",
+    ownerName: "Demo Host",
     ownerType: "commercial_rental",
     name: "City i-VTEC",
     make: "Honda",
@@ -489,25 +485,24 @@ const SEED_VEHICLES: VehicleRecord[] = [
     wheels: "4-Wheeler",
     city: "Bengaluru",
     campusZone: "Central Administrative Ring",
-    pickupAddress: "Administrative Gate Parking Lot, Slot A4",
+    pickupAddress: "Campus pickup point",
     price: 2200,
     hourlyPrice: 280,
     deposit: 3000,
     seats: 5,
     transmission: "Manual",
     fuel: "Petrol",
-    registrationNumber: "KA 04 MC 8830",
-    insuranceValidTill: "2027-09-15",
-    rcVerified: true,
-    insuranceVerified: true,
+    registrationNumber: "DEMO-RC-006",
+    insuranceValidTill: "",
+    rcVerified: false,
+    insuranceVerified: false,
     helmetOption: "Not Applicable",
     rating: 4.96,
     trips: 49,
     image: "/vehicles/honda-city.png",
     description:
       "1.5-litre 4-cylinder executive sedan with rear AC vents, touch infotainment, and large 506-litre trunk capacity. Excellent safety rating with 6 airbags and Vehicle Stability Assist. Ideal for airport runs, faculty transit, and official delegation travel.",
-    hostNotes:
-      "Fastag enabled on windshield for toll highways. Fastag recharge settled upon return.",
+    hostNotes: "Sample host notes for demonstration only.",
     guidelines:
       "Valid 4-wheeler (LMV) driving license with minimum 1 year validity required. Commercial trip logging applies.",
     status: "approved",
@@ -516,7 +511,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
   {
     id: "v7",
     ownerId: "usr-host-3",
-    ownerName: "Anand Nair (Cedar Lane)",
+    ownerName: "Demo Host",
     ownerType: "commercial_rental",
     name: "Thar 4×4",
     make: "Mahindra",
@@ -525,25 +520,24 @@ const SEED_VEHICLES: VehicleRecord[] = [
     wheels: "4-Wheeler",
     city: "Kochi",
     campusZone: "West Campus Promenade",
-    pickupAddress: "Cedar Lane Vehicle Depot, West Ring Road",
+    pickupAddress: "Campus pickup point",
     price: 3400,
     hourlyPrice: 420,
     deposit: 5000,
     seats: 4,
     transmission: "Manual",
     fuel: "Diesel",
-    registrationNumber: "KL 07 BK 7701",
-    insuranceValidTill: "2027-07-31",
-    rcVerified: true,
-    insuranceVerified: true,
+    registrationNumber: "DEMO-RC-007",
+    insuranceValidTill: "",
+    rcVerified: false,
+    insuranceVerified: false,
     helmetOption: "Not Applicable",
     rating: 4.94,
     trips: 58,
     image: "/vehicles/mahindra-thar.png",
     description:
       "All-terrain 4WD vehicle with 226 mm ground clearance, roll cage structure, and diesel powertrain. Maintained for rugged topography and regional research expeditions.",
-    hostNotes:
-      "Requires experienced manual 4WD operator. Pre-rental damage map recorded with photos.",
+    hostNotes: "Sample host notes for demonstration only.",
     guidelines:
       "Off-road driving must comply with designated trails only. Zero alcohol policy strictly enforced.",
     status: "approved",
@@ -552,7 +546,7 @@ const SEED_VEHICLES: VehicleRecord[] = [
   {
     id: "v8",
     ownerId: "usr-host-1",
-    ownerName: "Ramesh Sundaram (Juniper Hire)",
+    ownerName: "Demo Host",
     ownerType: "commercial_rental",
     name: "Creta SX",
     make: "Hyundai",
@@ -561,25 +555,24 @@ const SEED_VEHICLES: VehicleRecord[] = [
     wheels: "4-Wheeler",
     city: "Chennai",
     campusZone: "North Campus Gate / Transit Hub",
-    pickupAddress: "North Gate Commercial Complex, Suite 102",
+    pickupAddress: "Campus pickup point",
     price: 2800,
     hourlyPrice: 350,
     deposit: 4000,
     seats: 5,
     transmission: "Automatic",
     fuel: "Petrol",
-    registrationNumber: "TN 09 DX 1205",
-    insuranceValidTill: "2027-08-30",
-    rcVerified: true,
-    insuranceVerified: true,
+    registrationNumber: "DEMO-RC-008",
+    insuranceValidTill: "",
+    rcVerified: false,
+    insuranceVerified: false,
     helmetOption: "Not Applicable",
     rating: 4.91,
     trips: 52,
     image: "/vehicles/hyundai-creta.png",
     description:
       "Premium 5-seater mid-size SUV with automatic transmission, panoramic sunroof, wireless charging, and cruise control. Highly comfortable ride quality for campus visits and intercity travel.",
-    hostNotes:
-      "Includes 24/7 roadside assistance package. Full tank handover option available.",
+    hostNotes: "Sample host notes for demonstration only.",
     guidelines:
       "LMV driving license mandatory. Please return in clean condition to avoid detailing fee.",
     status: "approved",
@@ -595,18 +588,18 @@ const SEED_BOOKINGS: BookingRecord[] = [
     vehicleMake: "Hero",
     vehicleCategory: "Bike",
     wheels: "2-Wheeler",
-    registrationNumber: "TN 09 BX 4412",
+    registrationNumber: "DEMO-RC-001",
     vehicleImage: "/vehicles/hero-splendor.png",
     city: "Chennai",
     pickupZone: "North Campus Gate / Transit Hub",
-    pickupAddress: "Kiosk #3, North Gate Commercial Complex",
+    pickupAddress: "Campus pickup point",
     customerId: "usr-cust-1",
-    customerName: "Ananya Raman",
-    customerEmail: "ananya.r@iiitt.ac.in",
-    customerPhone: "+91 98401 23456",
-    drivingLicense: "TN-09-2023-0045192",
+    customerName: "Demo Renter",
+    customerEmail: "demo-renter-01@example.invalid",
+    customerPhone: "0000000001",
+    drivingLicense: "DEMO-LICENSE-001",
     ownerId: "usr-host-1",
-    ownerName: "Ramesh Sundaram (Juniper Hire)",
+    ownerName: "Demo Host",
     start: "2026-10-18",
     end: "2026-10-20",
     rentalDays: 2,
@@ -621,7 +614,7 @@ const SEED_BOOKINGS: BookingRecord[] = [
     total: 1085,
     paymentStatus: "PAID",
     paymentMethod: "UPI",
-    paymentTxnId: "UPI/261018894120/AXIS",
+    paymentTxnId: "DEMO-SAMPLE-TXN-001",
     paidAt: "2026-10-14T11:20:00Z",
     status: "CONFIRMED",
     createdAt: "2026-10-14T11:20:00Z",
@@ -633,18 +626,18 @@ const SEED_BOOKINGS: BookingRecord[] = [
     vehicleMake: "Honda",
     vehicleCategory: "Sedan",
     wheels: "4-Wheeler",
-    registrationNumber: "KA 04 MC 8830",
+    registrationNumber: "DEMO-RC-002",
     vehicleImage: "/vehicles/honda-city.png",
     city: "Bengaluru",
     pickupZone: "Central Administrative Ring",
-    pickupAddress: "Administrative Gate Parking Lot, Slot A4",
+    pickupAddress: "Campus pickup point",
     customerId: "usr-cust-1",
-    customerName: "Ananya Raman",
-    customerEmail: "ananya.r@iiitt.ac.in",
-    customerPhone: "+91 98401 23456",
-    drivingLicense: "TN-09-2023-0045192",
+    customerName: "Demo Renter",
+    customerEmail: "demo-renter-02@example.invalid",
+    customerPhone: "0000000002",
+    drivingLicense: "DEMO-LICENSE-002",
     ownerId: "usr-host-2",
-    ownerName: "Karthik Venkatesh (Cornerstone)",
+    ownerName: "Demo Host",
     start: "2026-10-08",
     end: "2026-10-09",
     rentalDays: 1,
@@ -659,7 +652,7 @@ const SEED_BOOKINGS: BookingRecord[] = [
     total: 2680,
     paymentStatus: "PAID",
     paymentMethod: "CARD",
-    paymentTxnId: "TXN_CC_998124065",
+    paymentTxnId: "DEMO-SAMPLE-TXN-002",
     paidAt: "2026-10-07T14:10:00Z",
     status: "COMPLETED",
     handover: {
@@ -667,14 +660,14 @@ const SEED_BOOKINGS: BookingRecord[] = [
       startingOdometer: 24150,
       fuelBatteryLevel: "100%",
       licenseInspected: true,
-      handoverNotes: "Clean vehicle handed over in slot A4.",
+      handoverNotes: "Sample handover record; demo data only.",
     },
     returnRecord: {
       returnTime: "2026-10-09T18:30:00Z",
       closingOdometer: 24295,
-      damageObserved: "None, returned in pristine condition.",
+      damageObserved: "Sample return inspection; demo data only.",
       depositReleased: true,
-      depositReleaseNotes: "Security deposit of ₹3,000 released in full to customer.",
+      depositReleaseNotes: "No transfer; demo data only.",
     },
     review: {
       rating: 5,
@@ -689,14 +682,13 @@ const SEED_PAYOUTS: PayoutRecord[] = [
   {
     id: "PAY-9011",
     ownerId: "usr-host-2",
-    ownerName: "Karthik Venkatesh (Cornerstone)",
+    ownerName: "Demo Host",
     amount: 2200,
     platformCommission: 220,
     netSettlement: 1980,
-    status: "PROCESSED",
+    status: "PENDING",
     payoutMethod: "UPI Settlement",
-    destinationAccount: "cornerstone@oksbi",
-    utrNumber: "UTR-AXIS-2026100988112",
+    destinationAccount: "demo-payout-01@invalid",
     createdAt: "2026-10-10T09:00:00Z",
   },
 ];
@@ -896,24 +888,28 @@ export const db = {
     excludeBookingId?: string
   ): boolean {
     const data = loadDatabase();
-    const targetStart = new Date(start + "T00:00:00").getTime();
-    const targetEnd = new Date(end + "T23:59:59").getTime();
+    // Rental date ranges are half-open: [pick-up, return). This lets a new
+    // renter pick up on the previous renter's return date.
+    const targetStart = Date.parse(`${start}T00:00:00.000Z`);
+    const targetEnd = Date.parse(`${end}T00:00:00.000Z`);
+    if (!Number.isFinite(targetStart) || !Number.isFinite(targetEnd) || targetEnd <= targetStart) {
+      return false;
+    }
 
-    // Check if vehicle has any overlapping confirmed/active bookings
     const active = data.bookings.filter(
       (b) =>
         b.vehicleId === vehicleId &&
         b.id !== excludeBookingId &&
         b.status !== "CANCELLED" &&
-        b.status !== "COMPLETED"
+        b.status !== "COMPLETED" &&
+        b.paymentStatus !== "PENDING"
     );
 
     for (const b of active) {
-      const bStart = new Date(b.start + "T00:00:00").getTime();
-      const bEnd = new Date(b.end + "T23:59:59").getTime();
-      // Overlap condition: start <= bEnd && end >= bStart
-      if (targetStart <= bEnd && targetEnd >= bStart) {
-        return false; // overlapping!
+      const bStart = Date.parse(`${b.start}T00:00:00.000Z`);
+      const bEnd = Date.parse(`${b.end}T00:00:00.000Z`);
+      if (Number.isFinite(bStart) && Number.isFinite(bEnd) && targetStart < bEnd && targetEnd > bStart) {
+        return false;
       }
     }
     return true;
@@ -931,9 +927,9 @@ export const db = {
     };
     data.bookings.unshift(newBooking);
 
-    // Update vehicle trip count
+    // A pending request is not a completed or paid trip.
     const v = data.vehicles.find((item) => item.id === booking.vehicleId);
-    if (v) {
+    if (v && booking.paymentStatus === "PAID") {
       v.trips += 1;
     }
 
@@ -967,7 +963,7 @@ export const db = {
     }
     if (extra?.refundAmount !== undefined) {
       b.refundAmount = extra.refundAmount;
-      b.paymentStatus = "REFUNDED";
+      b.paymentStatus = "REFUND_PENDING";
     }
     saveDatabase(data);
     return b;
@@ -1030,10 +1026,9 @@ export const db = {
       amount,
       platformCommission,
       netSettlement,
-      status: "PROCESSED",
+      status: "PENDING",
       payoutMethod,
       destinationAccount,
-      utrNumber: "UTR-IMPS-" + Date.now().toString().slice(-8),
       createdAt: new Date().toISOString(),
     };
     data.payouts.unshift(payout);

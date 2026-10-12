@@ -99,7 +99,7 @@ export default function AddVehicle() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ownerId: currentUser?.id || "usr-host-1",
-          ownerName: currentUser?.businessName || currentUser?.name || "Verified Partner",
+          ownerName: currentUser?.businessName || currentUser?.name || "Local host",
           name: name.trim(),
           make: make.trim(),
           year: Number(year),
@@ -127,12 +127,12 @@ export default function AddVehicle() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Failed to publish vehicle listing.");
+        setError(data.error || "Failed to submit vehicle listing for review.");
         setIsSubmitting(false);
         return;
       }
 
-      router.push("/host/listings?published=1");
+      router.push("/host/listings");
     } catch (err) {
       setError("Network error while submitting listing.");
       setIsSubmitting(false);
@@ -564,16 +564,16 @@ export default function AddVehicle() {
                 disabled={isSubmitting}
                 onClick={publish}
               >
-                {isSubmitting ? "Persisting to Marketplace…" : "Publish Vehicle Listing"}
+                {isSubmitting ? "Submitting for review…" : "Submit for review"}
                 <Check size={15} />
               </button>
             )}
           </div>
         </section>
 
-        {/* RIGHT PREVIEW CARD SHOWING OWNER'S LIVE CONTENT */}
+        {/* Listing preview */}
         <aside className="wizard-preview">
-          <div className="eyebrow">Real Listing Preview</div>
+          <div className="eyebrow">Listing preview</div>
           <div
             style={{
               marginTop: 16,

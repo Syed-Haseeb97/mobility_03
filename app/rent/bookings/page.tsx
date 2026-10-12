@@ -121,7 +121,7 @@ export default function BookingsPage() {
             Reservations.
           </h1>
           <p className="page-intro" style={{ marginTop: 14 }}>
-            Monitor scheduled pickups, retrieve tax invoices and receipts, inspect handover
+            Track booking requests, view booking summaries, and review handover
             details, and manage cancellation policies.
           </p>
         </div>
@@ -129,6 +129,11 @@ export default function BookingsPage() {
         <Link className="button-primary" href="/rent">
           Book Another Ride <ArrowUpRight size={15} />
         </Link>
+      </div>
+
+      <div className="preview-notice" role="status">
+        <strong>Demo history</strong>
+        <span>Sample booking and payment states are illustrative. This prototype does not collect, refund, or transfer money.</span>
       </div>
 
       {actionNotice && (
@@ -290,7 +295,7 @@ export default function BookingsPage() {
               <div style={{ textAlign: "right", minWidth: 160 }}>
                 <div className="price">{money(b.total)}</div>
                 <div className="muted" style={{ fontSize: 10, textTransform: "uppercase" }}>
-                  Payment: {b.paymentStatus || "PAID"}
+                  Payment: {b.paymentStatus || "PENDING"}
                 </div>
 
                 <div style={{ display: "grid", gap: 7, marginTop: 16 }}>
@@ -404,7 +409,7 @@ export default function BookingsPage() {
               <div>
                 <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-1px" }}>MOBILITY PLATFORM</div>
                 <div style={{ fontSize: 10, fontFamily: "var(--mono)", color: "#74786d" }}>
-                  OFFICIAL TAX INVOICE &amp; RENTAL RECEIPT
+                  BOOKING SUMMARY · DEMO ONLY
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
@@ -418,7 +423,7 @@ export default function BookingsPage() {
                 <strong style={{ fontSize: 11, color: "#838779", textTransform: "uppercase", fontFamily: "var(--mono)" }}>Renter</strong>
                 <div style={{ fontWeight: 700, marginTop: 3 }}>{selectedReceipt.customerName || selectedReceipt.guest}</div>
                 <div className="muted">{selectedReceipt.customerEmail}</div>
-                <div className="muted">DL: {selectedReceipt.drivingLicense || "Verified on file"}</div>
+                <div className="muted">DL: {selectedReceipt.drivingLicense || "Not provided"}</div>
               </div>
               <div>
                 <strong style={{ fontSize: 11, color: "#838779", textTransform: "uppercase", fontFamily: "var(--mono)" }}>Partner / Provider</strong>
@@ -434,7 +439,7 @@ export default function BookingsPage() {
                 <span>{money(selectedReceipt.baseTotal || selectedReceipt.total * 0.8)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, color: "#64685b" }}>
-                <span>Damage Waiver &amp; Roadside Protection</span>
+                <span>Estimated damage waiver</span>
                 <span>{money(selectedReceipt.damageWaiver || 100)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, color: "#64685b" }}>
@@ -446,14 +451,14 @@ export default function BookingsPage() {
                 <span>{money(selectedReceipt.taxes || Math.round(selectedReceipt.total * 0.05))}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 15, paddingTop: 10, borderTop: "1px dashed var(--line)" }}>
-                <span>Total Amount Paid</span>
+                <span>{selectedReceipt.paymentStatus === "PAID" ? "Total Amount Paid" : "Estimated Booking Total"}</span>
                 <span>{money(selectedReceipt.total)}</span>
               </div>
             </div>
 
             <div style={{ fontSize: 11, color: "#74786d", background: "#f8f9f2", padding: 12, borderRadius: 2 }}>
-              <div>Payment Reference: {selectedReceipt.paymentTxnId || "SECURE_ELECTRONIC_SETTLEMENT"}</div>
-              <div>Payment Method: {selectedReceipt.paymentMethod || "UPI"} · Status: {selectedReceipt.paymentStatus || "PAID"}</div>
+              <div>Payment Reference: {selectedReceipt.paymentTxnId || "No payment processed"}</div>
+              <div>Payment Method: {selectedReceipt.paymentMethod || "UPI"} · Status: {selectedReceipt.paymentStatus || "PENDING"}</div>
             </div>
 
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>

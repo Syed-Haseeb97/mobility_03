@@ -53,6 +53,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!customerPhone?.trim()) {
+      return NextResponse.json(
+        { error: "A contact phone number is required." },
+        { status: 400 }
+      );
+    }
+
     if (!drivingLicense || drivingLicense.trim().length < 6) {
       return NextResponse.json(
         { error: "A valid Driving License (DL) number is mandatory for vehicle handover." },
@@ -72,7 +79,28 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Concurrency & Availability Protection
+    // Validate strict date-only values before availability checks.
+    const isValidDateOnly = (value: string) =>
+      /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+      !Number.isNaN(Date.parse(value)) &&
+      new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value;
+    if (!isValidDateOnly(start) || !isValidDateOnly(end) || end <= start) {
+      return NextResponse.json(
+        { error: "Choose valid dates with the return date after pick-up." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Rental duration is calculated before checking availability.
+    const rentalDays = daysBetween(start, end);
+    if (!Number.isFinite(rentalDays) || rentalDays <= 0) {
+      return NextResponse.json(
+        { error: "Return date must be after pick-up date." },
+        { status: 400 }
+      );
+    }
+
+    // 3. Availability protection. Date ranges use a return-date-exclusive model.
     const isAvailable = db.checkAvailability(vehicleId, start, end);
     if (!isAvailable) {
       return NextResponse.json(
@@ -81,15 +109,6 @@ export async function POST(request: Request) {
             "This vehicle is already booked for overlapping dates. Please select alternative dates or browse other vehicles in the area.",
         },
         { status: 409 }
-      );
-    }
-
-    // 3. Authoritative Server-side Price Calculations
-    const rentalDays = daysBetween(start, end);
-    if (rentalDays <= 0) {
-      return NextResponse.json(
-        { error: "Return date must be on or after pick-up date." },
-        { status: 400 }
       );
     }
 
@@ -104,11 +123,9 @@ export async function POST(request: Request) {
 
     const total = baseTotal + damageWaiver + platformFee + taxes;
 
-    // 4. Secure Transaction Reference
-    const paymentTxnId =
-      (paymentMethod === "UPI" ? "UPI/" : paymentMethod === "CARD" ? "CARD/" : "NB/") +
-      Date.now().toString().slice(-8) +
-      Math.floor(1000 + Math.random() * 9000);
+    // Payment remains pending until a real provider confirms it.
+    const selectedPaymentMethod: BookingRecord["paymentMethod"] =
+      paymentMethod === "CARD" || paymentMethod === "NETBANKING" ? paymentMethod : "UPI";
 
     const booking: Omit<BookingRecord, "id" | "createdAt"> = {
       vehicleId: vehicle.id,
@@ -125,7 +142,7 @@ export async function POST(request: Request) {
       customerId: customerId || "usr-cust-1",
       customerName: customerName.trim(),
       customerEmail: customerEmail.trim(),
-      customerPhone: customerPhone || "+91 98401 23456",
+      customerPhone: customerPhone.trim(),
       drivingLicense: drivingLicense.trim().toUpperCase(),
 
       ownerId: vehicle.ownerId,
@@ -144,12 +161,12 @@ export async function POST(request: Request) {
       securityDeposit,
       total,
 
-      paymentStatus: "PAID",
-      paymentMethod: paymentMethod || "UPI",
-      paymentTxnId,
-      paidAt: new Date().toISOString(),
+      paymentStatus: "PENDING",
+      paymentMethod: selectedPaymentMethod,
+      paymentTxnId: "",
+      paidAt: "",
 
-      status: "CONFIRMED",
+      status: "PAYMENT_PENDING",
     };
 
     const newBooking = db.createBooking(booking);
@@ -157,7 +174,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         booking: newBooking,
-        message: "Booking confirmed and payment processed successfully.",
+        message: "Booking request saved. Payment has not been processed in this demo; connect a payment provider before accepting real rentals.",
         success: true,
       },
       { status: 201 }

@@ -43,21 +43,22 @@ export default function HostDashboard() {
 
   // Handover modal state
   const [handoverBooking, setHandoverBooking] = useState<Booking | null>(null);
-  const [startingOdo, setStartingOdo] = useState("12500");
-  const [fuelBattery, setFuelBattery] = useState("100%");
-  const [helmetsGiven, setHelmetsGiven] = useState("1");
-  const [handoverNotes, setHandoverNotes] = useState("Vehicle clean, helmet provided, DL checked.");
+  const [startingOdo, setStartingOdo] = useState("");
+  const [fuelBattery, setFuelBattery] = useState("");
+  const [helmetsGiven, setHelmetsGiven] = useState("");
+  const [handoverNotes, setHandoverNotes] = useState("");
+  const [licenseInspected, setLicenseInspected] = useState(false);
 
   // Return modal state
   const [returnBooking, setReturnBooking] = useState<Booking | null>(null);
-  const [closingOdo, setClosingOdo] = useState("12620");
-  const [damageNotes, setDamageNotes] = useState("None, clean return.");
+  const [closingOdo, setClosingOdo] = useState("");
+  const [damageNotes, setDamageNotes] = useState("");
 
   // Payout request modal state
   const [showPayoutModal, setShowPayoutModal] = useState(false);
-  const [payoutAmount, setPayoutAmount] = useState("1500");
+  const [payoutAmount, setPayoutAmount] = useState("");
   const [payoutDestination, setPayoutDestination] = useState(
-    currentUser?.bankUpi || "juniperhire@icici"
+    currentUser?.bankUpi || ""
   );
   const [payoutNotice, setPayoutNotice] = useState<string | null>(null);
 
@@ -79,6 +80,7 @@ export default function HostDashboard() {
 
   useEffect(() => {
     fetchHostData();
+    if (currentUser?.bankUpi) setPayoutDestination(currentUser.bankUpi);
   }, [currentUser]);
 
   const handleExecuteHandover = async (e: React.FormEvent) => {
@@ -94,6 +96,7 @@ export default function HostDashboard() {
             startingOdometer: Number(startingOdo),
             fuelBatteryLevel: fuelBattery,
             helmetsIssued: Number(helmetsGiven),
+            licenseInspected,
             handoverNotes,
           },
         }),
@@ -166,8 +169,7 @@ export default function HostDashboard() {
             {currentUser?.businessName || currentUser?.name || "Host Studio"}.
           </h1>
           <p className="page-intro">
-            Comprehensive command center for vehicle listings, active trip handovers,
-            rental revenue breakdown, and institutional settlements.
+            Demo partner workspace for sample bookings, handover details, and estimated payout requests. No funds are transferred by this prototype.
           </p>
         </div>
 
@@ -188,7 +190,7 @@ export default function HostDashboard() {
               gap: 8,
             }}
           >
-            <Banknote size={15} /> Request Settlement
+            <Banknote size={15} /> Request Demo Payout
           </button>
           <Link className="button-primary" href="/host/add-vehicle">
             Add a Vehicle <ArrowUpRight size={15} />
@@ -244,7 +246,7 @@ export default function HostDashboard() {
             className={activeTab === "payouts" ? "active" : ""}
             style={{ textAlign: "left", background: "none", border: 0, cursor: "pointer" }}
           >
-            Payouts &amp; Settlements
+            Payout requests (demo)
           </button>
           <Link href="/host/listings">Garage &amp; Listings</Link>
           <Link href="/host/add-vehicle">List New Vehicle</Link>
@@ -287,12 +289,12 @@ export default function HostDashboard() {
             <div className="host-stat">
               <span>
                 <Banknote size={13} style={{ display: "inline", marginRight: 5 }} />
-                Pending Settlement
+                Estimated Payout Available
               </span>
               <strong style={{ fontSize: 22, color: "#4d6b13" }}>
                 {money(data?.metrics.pendingSettlement || 0)}
               </strong>
-              <small>Available to disburse</small>
+              <small>Estimated payout availability (demo)</small>
             </div>
           </div>
 
@@ -321,7 +323,7 @@ export default function HostDashboard() {
                         <p className="muted" style={{ margin: "4px 0" }}>
                           Guest: <strong>{b.customerName || b.guest}</strong> · Phone:{" "}
                           <strong>{b.customerPhone || "On file"}</strong> · DL:{" "}
-                          <strong>{b.drivingLicense || "Verified"}</strong>
+                          <strong>{b.drivingLicense || "Not provided"}</strong>
                         </p>
                         <p className="muted">
                           Dates: {b.start} → {b.end} · Pickup Zone: {b.pickupZone || b.city}
@@ -355,7 +357,7 @@ export default function HostDashboard() {
                         {b.status === "ACTIVE_TRIP" && (
                           <button
                             type="button"
-                            onClick={() => setReturnBooking(b)}
+                            onClick={() => { setReturnBooking(b); setClosingOdo(""); setDamageNotes(""); }}
                             style={{
                               marginTop: 10,
                               fontSize: 11,
@@ -424,7 +426,7 @@ export default function HostDashboard() {
                             </h3>
                             <p className="muted">
                               Renter: <strong>{b.customerName || b.guest}</strong> · Driving License:{" "}
-                              <strong>{b.drivingLicense || "Verified"}</strong>
+                              <strong>{b.drivingLicense || "Not provided"}</strong>
                             </p>
                             <p className="muted">
                               Helmet Requested: {b.helmetOptionSelected || "1 Helmet Included"}
@@ -435,7 +437,7 @@ export default function HostDashboard() {
                             {b.status === "CONFIRMED" ? (
                               <button
                                 type="button"
-                                onClick={() => setHandoverBooking(b)}
+                                onClick={() => { setHandoverBooking(b); setStartingOdo(""); setFuelBattery(""); setHelmetsGiven(""); setHandoverNotes(""); setLicenseInspected(false); }}
                                 className="button-primary"
                                 style={{ fontSize: 11, padding: "8px 14px" }}
                               >
@@ -479,7 +481,7 @@ export default function HostDashboard() {
               <div className="section-head" style={{ marginTop: 28, marginBottom: 18 }}>
                 <div>
                   <div className="eyebrow">Financial Ledger &amp; Disbursals</div>
-                  <h2 style={{ fontSize: 24 }}>Partner Settlements</h2>
+                  <h2 style={{ fontSize: 24 }}>Payout Requests (Demo)</h2>
                 </div>
               </div>
 
@@ -506,7 +508,7 @@ export default function HostDashboard() {
                     onClick={() => setShowPayoutModal(true)}
                     className="button-primary"
                   >
-                    Withdraw Settlement <ArrowUpRight size={14} />
+                    Request Payout Estimate <ArrowUpRight size={14} />
                   </button>
                 </div>
               </div>
@@ -529,12 +531,12 @@ export default function HostDashboard() {
                       <div>
                         <div style={{ fontWeight: 700, fontSize: 13 }}>{p.id} · {p.payoutMethod}</div>
                         <div className="muted" style={{ fontSize: 11, marginTop: 3 }}>
-                          UTR: {p.utrNumber || "TRANSFERRED"} · {p.destinationAccount} · {p.createdAt.slice(0, 10)}
+                          Reference: {p.utrNumber || "Not transferred"} · {p.destinationAccount} · {p.createdAt.slice(0, 10)}
                         </div>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <div style={{ fontWeight: 800, fontSize: 15, color: "#3f5911" }}>
-                          +{money(p.netSettlement)}
+                        <div style={{ fontWeight: 800, fontSize: 15, color: p.status === "PROCESSED" ? "#3f5911" : "#8b6b24" }}>
+                          {p.status === "PROCESSED" ? "+" : ""}{money(p.netSettlement)}
                         </div>
                         <span className="pill" style={{ background: "#e8f2cb", color: "#3f5911" }}>
                           {p.status}
@@ -597,30 +599,44 @@ export default function HostDashboard() {
                 <label>
                   Fuel / Battery Charge Level
                   <select
+                    required
                     value={fuelBattery}
                     onChange={(e) => setFuelBattery(e.target.value)}
                   >
-                    <option>100% Full</option>
-                    <option>75% Level</option>
-                    <option>50% Level</option>
+                    <option value="">Select level</option>
+                    <option value="100% Full">100% Full</option>
+                    <option value="75% Level">75% Level</option>
+                    <option value="50% Level">50% Level</option>
                   </select>
                 </label>
 
                 <label>
                   ISI Certified Helmets Issued
                   <select
+                    required
                     value={helmetsGiven}
                     onChange={(e) => setHelmetsGiven(e.target.value)}
                   >
-                    <option>1 Certified Helmet</option>
-                    <option>2 Certified Helmets</option>
-                    <option>0 (Customer brought verified helmet / 4-Wheeler)</option>
+                    <option value="">Select helmet count</option>
+                    <option value="1">1 Helmet</option>
+                    <option value="2">2 Helmets</option>
+                    <option value="0">0 (Customer has own helmet / 4-Wheeler)</option>
                   </select>
                 </label>
 
+                <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <input
+                    type="checkbox"
+                    required
+                    checked={licenseInspected}
+                    onChange={(e) => setLicenseInspected(e.target.checked)}
+                  />
+                  I checked the renter’s driving licence against the booking.
+                </label>
                 <label>
                   Handover Inspection Notes
                   <input
+                    required
                     value={handoverNotes}
                     onChange={(e) => setHandoverNotes(e.target.value)}
                   />
@@ -688,6 +704,7 @@ export default function HostDashboard() {
                 <label>
                   Vehicle Condition &amp; Damage Inspection
                   <input
+                    required
                     value={damageNotes}
                     onChange={(e) => setDamageNotes(e.target.value)}
                   />
@@ -748,25 +765,27 @@ export default function HostDashboard() {
               borderRadius: 4,
             }}
           >
-            <div className="eyebrow">Partner Disbursal</div>
-            <h2 style={{ fontSize: 22, margin: "8px 0 16px" }}>Request Settlement</h2>
+            <div className="eyebrow">Demo payout request</div>
+            <h2 style={{ fontSize: 22, margin: "8px 0 16px" }}>Request Demo Payout</h2>
 
             <form onSubmit={handleRequestPayout}>
               <div className="form-stack">
                 <label>
-                  Settlement Amount (₹)
+                  Gross payout request (₹; 10% fee estimate applies)
                   <input
                     type="number"
+                    required
                     min="500"
-                    max={data?.metrics.pendingSettlement || 10000}
+                    max={data?.metrics.pendingSettlement ?? 0}
                     value={payoutAmount}
                     onChange={(e) => setPayoutAmount(e.target.value)}
                   />
                 </label>
 
                 <label>
-                  Destination Bank UPI / Account
+                  Payout destination (not transferred by demo)
                   <input
+                    required
                     value={payoutDestination}
                     onChange={(e) => setPayoutDestination(e.target.value)}
                     placeholder="e.g. juniper@icici or 9840123456@paytm"
@@ -783,7 +802,7 @@ export default function HostDashboard() {
                   Cancel
                 </button>
                 <button className="button-primary" type="submit">
-                  Disburse Funds <ArrowUpRight size={14} />
+                  Submit payout request <ArrowUpRight size={14} />
                 </button>
               </div>
             </form>

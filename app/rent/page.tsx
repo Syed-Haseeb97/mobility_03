@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, ShieldCheck, HardHat, RefreshCw } from "lucide-react";
 import { seedVehicles, type Vehicle, type VehicleCategory } from "@/lib/data";
@@ -10,78 +10,94 @@ function RentContent() {
   const searchParams = useSearchParams();
   const initialCity = searchParams.get("city") || "All locations";
   const initialWheels = searchParams.get("wheels") || "All vehicles";
+  const initialCategory = searchParams.get("category") || "All types";
+  const initialQuery = searchParams.get("search") || "";
+
+  const startDate = searchParams.get("start") || "";
+  const endDate = searchParams.get("end") || "";
+  const previewMode =
+    process.env.NODE_ENV === "production" &&
+    process.env.NEXT_PUBLIC_ENABLE_UNSAFE_DEMO_MODE !== "true";
 
   const [inventory, setInventory] = useState<Vehicle[]>(seedVehicles);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [city, setCity] = useState(initialCity === "" ? "All locations" : initialCity);
-  const [category, setCategory] = useState("All types");
+  const [category, setCategory] = useState(initialCategory);
   const [wheelType, setWheelType] = useState(initialWheels);
   const [rateFilter, setRateFilter] = useState("All rates");
   const [sort, setSort] = useState("Recommended");
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     setLoading(true);
+    setLoadError("");
     try {
-      const res = await fetch("/api/vehicles");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.vehicles && data.vehicles.length > 0) {
-          // Format into Vehicle shape
-          const formatted: Vehicle[] = data.vehicles.map((v: any) => ({
-            id: v.id,
-            name: v.name,
-            make: v.make,
-            category: v.category,
-            wheels: v.wheels,
-            city: v.city,
-            campusZone: v.campusZone,
-            pickupAddress: v.pickupAddress,
-            price: v.price,
-            hourlyPrice: v.hourlyPrice,
-            deposit: v.deposit,
-            seats: v.seats,
-            transmission: v.transmission,
-            fuel: v.fuel,
-            year: v.year,
-            rating: v.rating || 5,
-            trips: v.trips || 0,
-            image: v.image,
-            description: v.description,
-            host: v.ownerName || "Verified Host",
-            ownerId: v.ownerId,
-            registrationNumber: v.registrationNumber,
-            insuranceValidTill: v.insuranceValidTill,
-            rcVerified: v.rcVerified ?? true,
-            insuranceVerified: v.insuranceVerified ?? true,
-            helmetOption: v.helmetOption,
-            helmetCondition: v.helmetCondition,
-            guidelines: v.guidelines,
-            hostNotes: v.hostNotes,
-            status: v.status,
-          }));
-          setInventory(formatted);
-          return;
-        }
+      const params = new URLSearchParams();
+      if (startDate) params.set("start", startDate);
+      if (endDate) params.set("end", endDate);
+      const query = params.toString();
+      const res = await fetch(query ? `/api/vehicles?${query}` : "/api/vehicles");
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Unable to load the current inventory.");
+      }
+      if (Array.isArray(data.vehicles)) {
+        const formatted: Vehicle[] = data.vehicles.map((v: any) => ({
+          id: v.id,
+          name: v.name,
+          make: v.make,
+          category: v.category,
+          wheels: v.wheels,
+          city: v.city,
+          campusZone: v.campusZone,
+          pickupAddress: v.pickupAddress,
+          price: v.price,
+          hourlyPrice: v.hourlyPrice,
+          deposit: v.deposit,
+          seats: v.seats,
+          transmission: v.transmission,
+          fuel: v.fuel,
+          year: v.year,
+          rating: v.rating || 0,
+          trips: v.trips || 0,
+          image: v.image,
+          description: v.description,
+          host: v.ownerName || "Local host",
+          ownerId: v.ownerId,
+          registrationNumber: v.registrationNumber,
+          insuranceValidTill: v.insuranceValidTill,
+          rcVerified: v.rcVerified ?? false,
+          insuranceVerified: v.insuranceVerified ?? false,
+          helmetOption: v.helmetOption,
+          helmetCondition: v.helmetCondition,
+          guidelines: v.guidelines,
+          hostNotes: v.hostNotes,
+          status: v.status,
+        }));
+        setInventory(formatted);
+      } else {
+        throw new Error("The inventory response was not in the expected format.");
       }
     } catch (err) {
-      console.warn("Using fallback seed vehicles", err);
+      console.error("Vehicle inventory could not be loaded:", err);
+      setInventory([]);
+      setLoadError("We couldn’t load the latest listings. Please try refreshing in a moment.");
     } finally {
       setLoading(false);
     }
-    setInventory(seedVehicles);
-  };
+  }, [startDate, endDate]);
 
   useEffect(() => {
     fetchVehicles();
-  }, []);
+  }, [fetchVehicles]);
 
   const list = useMemo(
     () =>
       inventory
         .filter((v) => {
-          const textMatches = [v.name, v.make, v.city, v.campusZone || "", v.category, v.wheels || ""]
+          const textMatches = [v.name, v.make, v.city, v.campusZone || "", v.category, v.wheels || "", v.fuel || "", v.description || ""]
             .join(" ")
             .toLowerCase()
             .includes(query.toLowerCase());
@@ -112,18 +128,25 @@ function RentContent() {
     <main className="page-shell">
       <div className="page-top">
         <div>
-          <div className="eyebrow">Verified Marketplace / Live Inventory</div>
+          <div className="eyebrow">Campus Marketplace / Current Listings</div>
           <h1 className="page-heading">
             Find your kind
             <br />
-            of drive.
+            of ride.
           </h1>
         </div>
         <p className="page-intro">
-          Explore inspected two-wheelers for quick campus errands and passenger vehicles for longer
-          regional journeys. Filter by designated campus zone, pricing structure, and vehicle class.
+          Explore two-wheelers for quick campus errands and cars for longer regional journeys. Filter by
+          location, rental dates, pricing, and vehicle class.
         </p>
       </div>
+
+      {previewMode && (
+        <div className="preview-notice" role="status">
+          <strong>Preview catalog</strong>
+          <span>Listings are illustrative. Booking requests and payments are disabled until secure sign-in and checkout are configured.</span>
+        </div>
+      )}
 
       <div className="filter-bar">
         <label style={{ position: "relative", flex: "1 1 240px" }}>
@@ -215,7 +238,7 @@ function RentContent() {
       >
         <div className="result-count" style={{ marginBottom: 0 }}>
           <SlidersHorizontal size={12} style={{ display: "inline", marginRight: 7 }} />
-          {list.length} verified vehicles available
+          {list.length} {startDate && endDate ? "available options" : "listed vehicles"}
         </div>
         <button
           type="button"
@@ -236,7 +259,11 @@ function RentContent() {
         </button>
       </div>
 
-      {list.length ? (
+      {loading ? (
+        <div className="empty-state" role="status"><h3>Finding your options…</h3><p className="muted">Checking the latest listings{startDate && endDate ? " for your selected dates" : ""}.</p></div>
+      ) : loadError ? (
+        <div className="empty-state" role="alert"><h3>Inventory temporarily unavailable</h3><p className="muted">{loadError}</p><button className="button-primary" style={{ marginTop: 15 }} onClick={fetchVehicles}>Try again</button></div>
+      ) : list.length ? (
         <div className="vehicle-grid">
           {list.map((v) => (
             <VehicleCard key={v.id} vehicle={v} />
@@ -246,7 +273,7 @@ function RentContent() {
         <div className="empty-state">
           <h3>No vehicles matching your criteria.</h3>
           <p className="muted">
-            Try adjusting your location, vehicle type or search keywords to view other available options.
+            Try adjusting your location, vehicle type or search keywords to view other available options. If you selected dates, check another range.
           </p>
           <button
             className="button-primary"
@@ -264,7 +291,7 @@ function RentContent() {
         </div>
       )}
 
-      {/* FOOTER NOTICE ON REGULATORY COMPLIANCE */}
+      {/* Listing transparency note */}
       <div
         style={{
           marginTop: 40,
@@ -281,10 +308,9 @@ function RentContent() {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <ShieldCheck size={20} className="text-[#657d24]" />
           <div>
-            <div style={{ fontWeight: 700, fontSize: 13 }}>Institutional &amp; Regulatory Standard</div>
+            <div style={{ fontWeight: 700, fontSize: 13 }}>Check the details before you ride</div>
             <p className="muted" style={{ margin: 0 }}>
-              All listed vehicles operate with verified registration certificates (RC), valid commercial
-              or private-hire insurance, and mandatory helmet compliance at pickup.
+              Verification labels reflect the information recorded on each listing. Confirm documents, insurance coverage, helmet arrangements, and rental terms with the host before booking.
             </p>
           </div>
         </div>
@@ -298,7 +324,7 @@ export default function RentPage() {
     <Suspense
       fallback={
         <main className="page-shell">
-          <p className="page-intro">Loading verified vehicle fleet…</p>
+          <p className="page-intro">Loading current vehicle listings…</p>
         </main>
       }
     >

@@ -12,24 +12,27 @@ export async function GET(request: Request) {
     const payouts = db.getPayouts(ownerId);
 
     // Financial calculations
-    const grossBookingsAmount = bookings
-      .filter((b) => b.status !== "CANCELLED")
-      .reduce((sum, b) => sum + b.baseTotal, 0);
-
-    const platformCommission = Math.round(grossBookingsAmount * 0.1); // 10%
-    const totalEarnings = grossBookingsAmount - platformCommission;
+    const paidBookings = bookings.filter(
+      (booking) => booking.paymentStatus === "PAID" && booking.status !== "CANCELLED"
+    );
+    const grossBookingsAmount = paidBookings.reduce((sum, booking) => sum + booking.baseTotal, 0);
+    const platformCommission = paidBookings.reduce((sum, booking) => sum + booking.platformFee, 0);
+    const totalEarnings = Math.max(0, grossBookingsAmount - platformCommission);
 
     const settledAmount = payouts
       .filter((p) => p.status === "PROCESSED")
       .reduce((sum, p) => sum + p.netSettlement, 0);
 
-    const pendingSettlement = Math.max(0, totalEarnings - settledAmount);
+    const reservedPayouts = payouts
+      .filter((payout) => payout.status === "PENDING")
+      .reduce((sum, payout) => sum + payout.netSettlement, 0);
+    const pendingSettlement = Math.max(0, totalEarnings - settledAmount - reservedPayouts);
 
-    const activeRentals = bookings.filter(
-      (b) => b.status === "CONFIRMED" || b.status === "ACTIVE_TRIP"
+    const activeRentals = paidBookings.filter(
+      (booking) => booking.status === "CONFIRMED" || booking.status === "ACTIVE_TRIP"
     ).length;
 
-    const completedRentals = bookings.filter((b) => b.status === "COMPLETED").length;
+    const completedRentals = paidBookings.filter((booking) => booking.status === "COMPLETED").length;
 
     return NextResponse.json({
       owner,
@@ -57,27 +60,51 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { ownerId, amount, destinationAccount, payoutMethod } = body;
 
-    if (!ownerId || !amount || Number(amount) < 500) {
+    if (!ownerId || !Number.isFinite(Number(amount)) || Number(amount) < 500) {
       return NextResponse.json(
-        { error: "Minimum payout settlement amount is ₹500." },
+        { error: "Enter a valid payout request of at least ₹500." },
+        { status: 400 }
+      );
+    }
+
+    const paidBookings = db.getBookings({ ownerId }).filter(
+      (booking) => booking.paymentStatus === "PAID" && booking.status !== "CANCELLED"
+    );
+    const gross = paidBookings.reduce((sum, booking) => sum + booking.baseTotal, 0);
+    const commission = paidBookings.reduce((sum, booking) => sum + booking.platformFee, 0);
+    const payouts = db.getPayouts(ownerId);
+    const settled = payouts.filter((payout) => payout.status === "PROCESSED").reduce((sum, payout) => sum + payout.netSettlement, 0);
+    const reserved = payouts.filter((payout) => payout.status === "PENDING").reduce((sum, payout) => sum + payout.netSettlement, 0);
+    const available = Math.max(0, gross - commission - settled - reserved);
+    const estimatedNet = Number(amount) - Math.round(Number(amount) * 0.1);
+    if (estimatedNet > available) {
+      return NextResponse.json(
+        { error: "This request exceeds the available payout estimate." },
         { status: 400 }
       );
     }
 
     const owner = db.getUserById(ownerId);
     const ownerName = owner?.businessName || owner?.name || "Rental Partner";
+    const payoutDestination = String(destinationAccount || owner?.bankUpi || "").trim();
+    if (!payoutDestination) {
+      return NextResponse.json(
+        { error: "Enter a payout destination before submitting this request." },
+        { status: 400 }
+      );
+    }
 
     const payout = db.createPayout(
       ownerId,
       ownerName,
       Number(amount),
-      payoutMethod || "IMPS / UPI Direct Bank Transfer",
-      destinationAccount || owner?.bankUpi || "registered-account@bank"
+      payoutMethod || "UPI / bank transfer preference",
+      payoutDestination
     );
 
     return NextResponse.json({
       payout,
-      message: `Settlement of ₹${payout.netSettlement.toLocaleString("en-IN")} initiated (UTR: ${payout.utrNumber}).`,
+      message: `Payout request for ₹${payout.netSettlement.toLocaleString("en-IN")} recorded for review. No money has been transferred in this demo.`,
       success: true,
     });
   } catch (err) {
