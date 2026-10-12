@@ -126,7 +126,7 @@ export default function GuidelinesPage() {
             <h2 style={{ fontSize: 28 }}>Make a listing worth trusting.</h2>
             <p className="section-sub">
               Quality listings build a reliable campus mobility marketplace. Transparency prevents
-              disputes and guarantees fast platform settlements.
+              disputes and, once a real payment provider is connected, payment and settlement reconciliation.
             </p>
           </div>
           <Link className="text-link" href="/host/add-vehicle">
@@ -220,7 +220,7 @@ export default function GuidelinesPage() {
             <FileCheck2 size={24} className="text-[#c8ff3a]" style={{ marginBottom: 10 }} />
             <div style={{ fontWeight: 700, fontSize: 14 }}>RC Plate Verification</div>
             <p style={{ color: "#a5aba0", fontSize: 12, lineHeight: 1.7, margin: "6px 0 0" }}>
-              Chassis number and license plate verified against Ministry of Road Transport records.
+              Before marking a listing verified, an authorized reviewer must compare the registration details against official transport records.
             </p>
           </div>
 
@@ -234,7 +234,7 @@ export default function GuidelinesPage() {
             <ShieldCheck size={24} className="text-[#c8ff3a]" style={{ marginBottom: 10 }} />
             <div style={{ fontWeight: 700, fontSize: 14 }}>Active Commercial Insurance</div>
             <p style={{ color: "#a5aba0", fontSize: 12, lineHeight: 1.7, margin: "6px 0 0" }}>
-              Comprehensive insurance cover with third-party liability and roadside assistance coverage.
+              Confirm that the actual policy covers the intended rental use, third-party liability, and any roadside assistance represented by the host.
             </p>
           </div>
 
