@@ -357,7 +357,7 @@ export default function HostDashboard() {
                         {b.status === "ACTIVE_TRIP" && (
                           <button
                             type="button"
-                            onClick={() => setReturnBooking(b)}
+                            onClick={() => { setReturnBooking(b); setClosingOdo(""); setDamageNotes(""); }}
                             style={{
                               marginTop: 10,
                               fontSize: 11,
@@ -437,7 +437,7 @@ export default function HostDashboard() {
                             {b.status === "CONFIRMED" ? (
                               <button
                                 type="button"
-                                onClick={() => setHandoverBooking(b)}
+                                onClick={() => { setHandoverBooking(b); setStartingOdo(""); setFuelBattery(""); setHelmetsGiven(""); setHandoverNotes(""); setLicenseInspected(false); }}
                                 className="button-primary"
                                 style={{ fontSize: 11, padding: "8px 14px" }}
                               >
