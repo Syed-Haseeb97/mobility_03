@@ -12,7 +12,18 @@ export async function GET(
     return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ vehicle });
+  const demoAccessAllowed =
+    process.env.NODE_ENV !== "production" ||
+    process.env.MOBILITY_ENABLE_UNSAFE_DEMO_MODE === "true";
+  const publicVehicle = demoAccessAllowed
+    ? vehicle
+    : {
+        ...vehicle,
+        registrationNumber: vehicle.rcVerified ? vehicle.registrationNumber : "",
+        insuranceValidTill: vehicle.insuranceVerified ? vehicle.insuranceValidTill : "",
+      };
+
+  return NextResponse.json({ vehicle: publicVehicle });
 }
 
 export async function PUT(
