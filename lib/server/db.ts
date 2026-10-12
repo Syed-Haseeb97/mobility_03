@@ -147,7 +147,7 @@ export interface BookingRecord {
   total: number;
 
   // Payment
-  paymentStatus: "PAID" | "REFUNDED" | "PENDING";
+  paymentStatus: "PAID" | "REFUNDED" | "PENDING" | "REFUND_PENDING";
   paymentMethod: "UPI" | "CARD" | "NETBANKING";
   paymentTxnId: string;
   paidAt: string;
@@ -971,7 +971,7 @@ export const db = {
     }
     if (extra?.refundAmount !== undefined) {
       b.refundAmount = extra.refundAmount;
-      b.paymentStatus = "REFUNDED";
+      b.paymentStatus = "REFUND_PENDING";
     }
     saveDatabase(data);
     return b;
