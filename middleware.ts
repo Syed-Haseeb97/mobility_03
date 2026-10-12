@@ -1,22 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const protectedPages = [
-  "/admin",
-  "/host/dashboard",
-  "/host/listings",
-  "/host/add-vehicle",
-  "/rent/bookings",
-];
-
-const sensitiveApiPrefixes = [
-  "/api/bookings",
-  "/api/auth/session",
-  "/api/payouts",
-  "/api/admin",
-  "/api/reviews",
-  "/api/disputes",
-  "/api/handover",
-];
+const protectedPages = ["/admin", "/host", "/rent/bookings"];
 
 function matchesPath(pathname: string, prefix: string) {
   return pathname === prefix || pathname.startsWith(prefix + "/");
@@ -43,13 +27,15 @@ export function middleware(request: NextRequest) {
   const isApi = pathname.startsWith("/api/");
   if (!isApi) return NextResponse.next();
 
-  const isMutation = !["GET", "HEAD", "OPTIONS"].includes(request.method);
-  const isSensitiveRead = sensitiveApiPrefixes.some((path) => matchesPath(pathname, path));
-  if (isMutation || isSensitiveRead) {
+  // Only public approved-vehicle reads are enabled without an authenticated backend.
+  const isPublicVehicleRead =
+    request.method === "GET" &&
+    (pathname === "/api/vehicles" || pathname.startsWith("/api/vehicles/"));
+  if (!isPublicVehicleRead) {
     return NextResponse.json(
       {
         error:
-          "This demo backend is not enabled for public production use. Configure real authentication, authorization, and payment processing before enabling mutations.",
+          "This demo backend is not enabled for public production use. Configure real authentication, authorization, and payment processing before enabling this endpoint.",
       },
       { status: 503 }
     );
