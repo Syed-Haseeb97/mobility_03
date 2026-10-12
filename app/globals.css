@@ -148,3 +148,41 @@
  .home-trust-strip{margin:0 5% 55px;padding:18px;align-items:flex-start;flex-wrap:wrap;gap:12px}
  .home-trust-strip>div:nth-child(2){min-width:calc(100% - 60px)}.home-trust-strip>a{margin-left:56px;white-space:normal}
 }
+
+
+/* Animated campus route illustration — service-first, not a vehicle showroom */
+.home-route-map{position:absolute;inset:10% 0 8%;z-index:3}
+.home-route-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.home-route-track{stroke:#d9fa58;stroke-width:2.5;stroke-linecap:round;stroke-dasharray:9 12;filter:drop-shadow(0 0 6px #d9fa583d);animation:home-route-dash 22s linear infinite}
+.home-route-secondary{stroke:#f4f5ed;stroke-width:1.2;stroke-dasharray:3 12;opacity:.24}
+.home-route-dot{fill:#d9fa58;stroke:#1d251e;stroke-width:5;animation:home-pulse 2.2s ease-in-out infinite}
+.home-route-dot-end{fill:#f4f5ed;animation-delay:.8s}
+.home-map-node{position:absolute;display:flex;align-items:center;gap:10px;min-width:155px;padding:11px 13px;background:#f5f5ef;color:#20251e;border:1px solid #ffffff85;box-shadow:0 16px 35px #0003;animation:home-float 5s ease-in-out infinite}
+.home-map-node>div{display:grid;gap:4px}
+.home-map-node small{font:8px var(--mono);letter-spacing:.9px;color:#7c8759}
+.home-map-node strong{font-size:11px;white-space:nowrap}
+.home-map-pin{display:grid;place-items:center;flex:0 0 31px;height:31px;background:#d9fa58;color:#20251e}
+.home-map-pin-light{background:#273329;color:#d9fa58}
+.home-map-node-campus{left:0;top:62%;animation-delay:-1.2s}
+.home-map-node-library{left:40%;top:39%;animation-delay:-3s}
+.home-map-node-destination{right:0;top:7%;animation-delay:-2s}
+.home-map-floating{position:absolute;display:flex;align-items:center;gap:8px;padding:9px 11px;background:#29352a;border:1px solid #ffffff28;color:#e9eddf;font:8px var(--mono);letter-spacing:.7px;box-shadow:0 12px 30px #0002}
+.home-map-floating svg{color:#d9fa58}
+.home-map-floating-bike{left:3%;top:2%;animation:home-float 6s ease-in-out infinite}
+.home-map-floating-car{right:8%;bottom:21%;animation:home-float 6s 1.4s ease-in-out infinite}
+.home-route-map .home-art-caption{left:20%;right:2%;bottom:0}
+@keyframes home-route-dash{to{stroke-dashoffset:-420}}
+@media(max-width:700px){
+ .home-route-map{inset:7% 0 4%}
+ .home-map-node{min-width:0;padding:8px;gap:7px}
+ .home-map-node small{font-size:7px;letter-spacing:.4px}
+ .home-map-node strong{font-size:9px}
+ .home-map-pin{flex-basis:26px;height:26px}
+ .home-map-node-campus{left:0;top:61%}
+ .home-map-node-library{left:35%;top:38%}
+ .home-map-node-destination{right:0;top:8%}
+ .home-map-floating{padding:7px 8px;font-size:7px;gap:5px}
+ .home-map-floating-bike{left:0;top:0}
+ .home-map-floating-car{right:2%;bottom:23%}
+ .home-route-map .home-art-caption{left:5%;right:5%;bottom:0;padding:9px 10px}
+}
