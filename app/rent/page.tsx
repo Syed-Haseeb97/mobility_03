@@ -15,6 +15,9 @@ function RentContent() {
 
   const startDate = searchParams.get("start") || "";
   const endDate = searchParams.get("end") || "";
+  const previewMode =
+    process.env.NODE_ENV === "production" &&
+    process.env.NEXT_PUBLIC_ENABLE_UNSAFE_DEMO_MODE !== "true";
 
   const [inventory, setInventory] = useState<Vehicle[]>(seedVehicles);
   const [loading, setLoading] = useState(true);
@@ -133,10 +136,17 @@ function RentContent() {
           </h1>
         </div>
         <p className="page-intro">
-          Explore inspected two-wheelers for quick campus errands and passenger vehicles for longer
-          regional journeys. Filter by designated campus zone, pricing structure, and vehicle class.
+          Explore two-wheelers for quick campus errands and cars for longer regional journeys. Filter by
+          location, rental dates, pricing, and vehicle class.
         </p>
       </div>
+
+      {previewMode && (
+        <div className="preview-notice" role="status">
+          <strong>Preview catalog</strong>
+          <span>Listings are illustrative. Booking requests and payments are disabled until secure sign-in and checkout are configured.</span>
+        </div>
+      )}
 
       <div className="filter-bar">
         <label style={{ position: "relative", flex: "1 1 240px" }}>
