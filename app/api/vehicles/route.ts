@@ -92,14 +92,42 @@ export async function POST(request: Request) {
       guidelines,
     } = body;
 
-    if (!name || !make || !price || Number(price) < 200) {
+    const numericPrice = Number(price);
+    const numericHourlyPrice = Number(hourlyPrice);
+    const numericDeposit = Number(deposit);
+    const numericYear = Number(year);
+    const numericSeats = Number(seats);
+
+    if (
+      !name?.trim() ||
+      !make?.trim() ||
+      !Number.isFinite(numericPrice) ||
+      numericPrice < 200 ||
+      !Number.isFinite(numericHourlyPrice) ||
+      numericHourlyPrice < 0 ||
+      !Number.isFinite(numericDeposit) ||
+      numericDeposit < 0 ||
+      !Number.isInteger(numericYear) ||
+      numericYear < 1980 ||
+      numericYear > new Date().getFullYear() + 1 ||
+      !Number.isInteger(numericSeats) ||
+      numericSeats < 1 ||
+      numericSeats > 9
+    ) {
       return NextResponse.json(
-        { error: "Make, model and a valid daily rate of at least ₹200 are required." },
+        { error: "Enter a valid make, model, year, seat count, daily/hourly rates, and deposit." },
         { status: 400 }
       );
     }
 
-    if (!description || description.trim().length < 15) {
+    if (!registrationNumber?.trim()) {
+      return NextResponse.json(
+        { error: "A registration number is required for the review process." },
+        { status: 400 }
+      );
+    }
+
+    if (!description?.trim() || description.trim().length < 15) {
       return NextResponse.json(
         { error: "Please provide a clear host description of at least 15 characters." },
         { status: 400 }
@@ -108,11 +136,11 @@ export async function POST(request: Request) {
 
     const newVehicle = db.createVehicle({
       ownerId: ownerId || "usr-host-1",
-      ownerName: ownerName || "Verified Host",
-      ownerType: "commercial_rental",
+      ownerName: ownerName || "Local host",
+      ownerType: "individual",
       name: name.trim(),
       make: make.trim(),
-      year: Number(year) || new Date().getFullYear(),
+      year: numericYear,
       category: category || "Bike",
       wheels: wheels || (category === "Bike" || category === "Scooter" ? "2-Wheeler" : "4-Wheeler"),
       city: city || "Chennai",
@@ -121,10 +149,10 @@ export async function POST(request: Request) {
       price: Number(price),
       hourlyPrice: Number(hourlyPrice) || Math.round(Number(price) / 7),
       deposit: Number(deposit) || Math.round(Number(price) * 1.5),
-      seats: Number(seats) || 2,
+      seats: numericSeats,
       transmission: transmission || "Manual",
       fuel: fuel || "Petrol",
-      registrationNumber: registrationNumber || "Pending verification",
+      registrationNumber: registrationNumber.trim().toUpperCase(),
       insuranceValidTill: insuranceValidTill || "",
       rcVerified: false,
       insuranceVerified: false,
