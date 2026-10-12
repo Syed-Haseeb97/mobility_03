@@ -11,6 +11,10 @@ import {
 } from "lucide-react";
 
 export default function HostIntro() {
+  const demoActionsEnabled =
+    process.env.NODE_ENV !== "production" ||
+    process.env.MOBILITY_ENABLE_UNSAFE_DEMO_MODE === "true";
+
   return (
     <main>
       <section className="hero" style={{ minHeight: 460, paddingTop: 85, paddingBottom: 80 }}>
@@ -24,16 +28,23 @@ export default function HostIntro() {
             </h1>
             <p className="hero-copy">
               Prepare your two-wheeler or passenger car listing for campus users and institutional
-              members. Set your daily and hourly rates, manage your handover calendar, and receive prompt
-              settlement disbursements.
+              members. Set your daily and hourly rates and manage handover details. Actual payment collection and payouts are not connected in this demo.
             </p>
             <div className="hero-actions">
-              <Link className="button-primary" href="/host/add-vehicle">
-                List Your Vehicle <ArrowUpRight size={16} />
-              </Link>
-              <Link className="text-link" href="/host/dashboard" style={{ color: "#c8ff3a" }}>
-                Partner Dashboard <ArrowUpRight size={15} />
-              </Link>
+              {demoActionsEnabled ? (
+                <>
+                  <Link className="button-primary" href="/host/add-vehicle">
+                    List Your Vehicle <ArrowUpRight size={16} />
+                  </Link>
+                  <Link className="text-link" href="/host/dashboard" style={{ color: "#c8ff3a" }}>
+                    Partner Dashboard <ArrowUpRight size={15} />
+                  </Link>
+                </>
+              ) : (
+                <p className="hero-copy" style={{ color: "#d7ddcd" }}>
+                  Partner onboarding will open after secure sign-in and payment processing are configured.
+                </p>
+              )}
             </div>
           </div>
 
@@ -142,12 +153,16 @@ export default function HostIntro() {
             <div style={{ fontWeight: 700, fontSize: 13 }}>Standard Campus Platform Terms</div>
             <p className="muted" style={{ margin: "4px 0 0" }}>
               Mobility operates with a transparent 10% platform commission on completed trips, covering
-              roadside assistance dispatch, 24/7 security monitoring, and regulatory compliance checks.
+              future roadside-assistance partnerships, incident workflows, and compliance reviews.
             </p>
           </div>
-          <Link className="button-primary" href="/host/add-vehicle">
-            Get Started <ArrowUpRight size={14} />
-          </Link>
+          {demoActionsEnabled ? (
+            <Link className="button-primary" href="/host/add-vehicle">
+              Get Started <ArrowUpRight size={14} />
+            </Link>
+          ) : (
+            <span className="muted">Partner onboarding is not open on this deployment yet.</span>
+          )}
         </div>
       </section>
     </main>
