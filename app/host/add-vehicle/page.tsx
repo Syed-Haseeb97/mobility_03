@@ -99,7 +99,7 @@ export default function AddVehicle() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ownerId: currentUser?.id || "usr-host-1",
-          ownerName: currentUser?.businessName || currentUser?.name || "Verified Partner",
+          ownerName: currentUser?.businessName || currentUser?.name || "Local host",
           name: name.trim(),
           make: make.trim(),
           year: Number(year),
@@ -132,7 +132,7 @@ export default function AddVehicle() {
         return;
       }
 
-      router.push("/host/listings?published=1");
+      router.push("/host/listings");
     } catch (err) {
       setError("Network error while submitting listing.");
       setIsSubmitting(false);
