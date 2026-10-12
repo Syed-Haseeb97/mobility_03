@@ -131,6 +131,11 @@ export default function BookingsPage() {
         </Link>
       </div>
 
+      <div className="preview-notice" role="status">
+        <strong>Demo history</strong>
+        <span>Sample booking and payment states are illustrative. This prototype does not collect, refund, or transfer money.</span>
+      </div>
+
       {actionNotice && (
         <div
           style={{
