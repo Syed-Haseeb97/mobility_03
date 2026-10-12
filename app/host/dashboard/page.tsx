@@ -79,6 +79,7 @@ export default function HostDashboard() {
 
   useEffect(() => {
     fetchHostData();
+    if (currentUser?.bankUpi) setPayoutDestination(currentUser.bankUpi);
   }, [currentUser]);
 
   const handleExecuteHandover = async (e: React.FormEvent) => {
@@ -243,7 +244,7 @@ export default function HostDashboard() {
             className={activeTab === "payouts" ? "active" : ""}
             style={{ textAlign: "left", background: "none", border: 0, cursor: "pointer" }}
           >
-            Payouts &amp; Settlements
+            Payout requests (demo)
           </button>
           <Link href="/host/listings">Garage &amp; Listings</Link>
           <Link href="/host/add-vehicle">List New Vehicle</Link>
@@ -747,7 +748,7 @@ export default function HostDashboard() {
               borderRadius: 4,
             }}
           >
-            <div className="eyebrow">Partner Disbursal</div>
+            <div className="eyebrow">Demo payout request</div>
             <h2 style={{ fontSize: 22, margin: "8px 0 16px" }}>Request Demo Payout</h2>
 
             <form onSubmit={handleRequestPayout}>
@@ -756,6 +757,7 @@ export default function HostDashboard() {
                   Gross payout request (₹; 10% fee estimate applies)
                   <input
                     type="number"
+                    required
                     min="500"
                     max={data?.metrics.pendingSettlement ?? 0}
                     value={payoutAmount}
@@ -764,8 +766,9 @@ export default function HostDashboard() {
                 </label>
 
                 <label>
-                  Destination Bank UPI / Account
+                  Payout destination (not transferred by demo)
                   <input
+                    required
                     value={payoutDestination}
                     onChange={(e) => setPayoutDestination(e.target.value)}
                     placeholder="e.g. juniper@icici or 9840123456@paytm"
@@ -782,7 +785,7 @@ export default function HostDashboard() {
                   Cancel
                 </button>
                 <button className="button-primary" type="submit">
-                  Disburse Funds <ArrowUpRight size={14} />
+                  Submit payout request <ArrowUpRight size={14} />
                 </button>
               </div>
             </form>
