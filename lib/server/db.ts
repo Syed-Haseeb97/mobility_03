@@ -909,7 +909,8 @@ export const db = {
         b.vehicleId === vehicleId &&
         b.id !== excludeBookingId &&
         b.status !== "CANCELLED" &&
-        b.status !== "COMPLETED"
+        b.status !== "COMPLETED" &&
+        b.paymentStatus !== "PENDING"
     );
 
     for (const b of active) {
