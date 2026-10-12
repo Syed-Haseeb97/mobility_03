@@ -159,7 +159,7 @@ export async function POST(request: Request) {
       paymentTxnId: "",
       paidAt: "",
 
-      status: "CONFIRMED",
+      status: "PAYMENT_PENDING",
     };
 
     const newBooking = db.createBooking(booking);
