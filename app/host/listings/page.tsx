@@ -153,25 +153,33 @@ export default function HostListings() {
                 )}
 
                 <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
-                  <Link
-                    href={`/rent/vehicle/${v.id}`}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      background: "#ffffff",
-                      border: "1px solid var(--line)",
-                      padding: "6px 12px",
-                    }}
-                  >
-                    <Eye size={13} /> View Live Listing
-                  </Link>
+                  {v.status === "approved" ? (
+                    <Link
+                      className="button-primary"
+                      href={`/rent/vehicle/${v.id}`}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        background: "#ffffff",
+                        border: "1px solid var(--line)",
+                        padding: "6px 12px",
+                      }}
+                    >
+                      <Eye size={13} /> View live listing
+                    </Link>
+                  ) : (
+                    <span className="muted">
+                      {v.status === "pending_review" ? "Awaiting review" : "Not public"}
+                    </span>
+                  )}
 
                   <button
                     type="button"
+                    disabled={v.status === "pending_review" || v.status === "rejected"}
                     onClick={() => toggleStatus(v.id, v.status)}
                     style={{
                       background: "#f0f2eb",
@@ -179,10 +187,11 @@ export default function HostListings() {
                       padding: "6px 12px",
                       fontSize: 11,
                       fontWeight: 600,
-                      cursor: "pointer",
+                      cursor: v.status === "pending_review" || v.status === "rejected" ? "not-allowed" : "pointer",
+                      opacity: v.status === "pending_review" || v.status === "rejected" ? 0.55 : 1,
                     }}
                   >
-                    {v.status === "approved" ? "Pause Listing" : "Activate Listing"}
+                    {v.status === "pending_review" ? "Pending review" : v.status === "rejected" ? "Needs changes" : v.status === "approved" ? "Pause Listing" : "Activate Listing"}
                   </button>
 
                   <button
