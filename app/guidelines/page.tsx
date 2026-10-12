@@ -138,7 +138,7 @@ export default function GuidelinesPage() {
           {[
             {
               n: "01",
-              title: "Authoritative Partner Identity",
+              title: "Partner identity review",
               body: "Provide verified business name or personal identification, contact phone, and designated physical kiosk address for seamless student collections.",
             },
             {
