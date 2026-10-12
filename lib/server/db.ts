@@ -935,9 +935,9 @@ export const db = {
     };
     data.bookings.unshift(newBooking);
 
-    // Update vehicle trip count
+    // A pending request is not a completed or paid trip.
     const v = data.vehicles.find((item) => item.id === booking.vehicleId);
-    if (v) {
+    if (v && booking.paymentStatus === "PAID") {
       v.trips += 1;
     }
 
