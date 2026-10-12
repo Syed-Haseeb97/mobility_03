@@ -10,7 +10,6 @@ import {
   Shield,
   Briefcase,
   ChevronDown,
-  Sparkles,
 } from "lucide-react";
 import { useSession } from "@/components/session-provider";
 
@@ -20,6 +19,9 @@ export function SiteHeader() {
   const { currentUser, allUsers, switchUser } = useSession();
 
   const currentRole = currentUser?.role || "customer";
+  const demoUiEnabled =
+    process.env.NODE_ENV !== "production" ||
+    process.env.NEXT_PUBLIC_ENABLE_UNSAFE_DEMO_MODE === "true";
 
   return (
     <header className="site-header">
@@ -50,6 +52,8 @@ export function SiteHeader() {
         <Link href="/guidelines" onClick={() => setOpen(false)}>
           Guidelines &amp; Safety
         </Link>
+        {demoUiEnabled && (
+          <>
         <Link href="/rent/bookings" onClick={() => setOpen(false)}>
           My Trips
         </Link>
@@ -186,6 +190,9 @@ export function SiteHeader() {
             </div>
           )}
         </div>
+
+          </>
+        )}
 
         <Link
           className="nav-cta"
