@@ -66,8 +66,8 @@ export default function HostIntro() {
                 Built around your operational workflow.
               </h2>
               {[
-                "Authoritative Pricing & Deposit Rules",
-                "Digital Key Handover & Return Logging",
+                "Clear pricing & deposit details",
+                "Handover and return notes",
                 "Payout tracking (demo only)",
               ].map((x, i) => (
                 <p
@@ -104,7 +104,7 @@ export default function HostIntro() {
             <h2>
               Good partnerships
               <br />
-              start with verified standards.
+              start with clear standards.
             </h2>
           </div>
           <ShieldCheck size={42} strokeWidth={1.5} className="text-[#68811e]" />
@@ -124,7 +124,7 @@ export default function HostIntro() {
             },
             {
               n: "03",
-              title: "Settlement & Payouts",
+              title: "Payout requests (demo)",
               body: "Review completed trips in your financial ledger and review estimated net revenue. Actual payouts require a connected payment provider and verified settlement process.",
             },
           ].map((x) => (
