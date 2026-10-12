@@ -240,7 +240,7 @@ export default function VehicleDetail() {
   return (
     <main className="page-shell">
       <Link className="text-link" href="/rent">
-        <ArrowLeft size={15} /> Back to verified fleet
+        <ArrowLeft size={15} /> Back to all rides
       </Link>
 
       {/* TOP HEADER */}
@@ -255,7 +255,7 @@ export default function VehicleDetail() {
             {vehicle.name}
           </h1>
           <p className="page-intro" style={{ marginTop: 8 }}>
-            ★ {vehicle.rating.toFixed(2)} · {vehicle.trips} verified trips · Hosted by{" "}
+            ★ {vehicle.rating.toFixed(2)} · {vehicle.trips} trips · Hosted by{" "}
             <strong>{vehicle.host}</strong>
           </p>
         </div>
@@ -475,11 +475,13 @@ export default function VehicleDetail() {
                   alignItems: "center",
                 }}
               >
-                <ShieldCheck size={18} className="text-[#637d1e]" />
+                {vehicle.insuranceVerified ? <ShieldCheck size={18} className="text-[#637d1e]" /> : <ShieldAlert size={18} className="text-[#9a6b24]" />}
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 12 }}>Commercial Insurance</div>
+                  <div style={{ fontWeight: 700, fontSize: 12 }}>Insurance details</div>
                   <div className="muted" style={{ fontSize: 11 }}>
-                    {vehicle.insuranceValidTill || "Valid Insurance Policy"}
+                    {vehicle.insuranceVerified && vehicle.insuranceValidTill
+                      ? `Recorded validity: ${vehicle.insuranceValidTill}`
+                      : "Verification pending — confirm coverage with the host before booking."}
                   </div>
                 </div>
               </div>
