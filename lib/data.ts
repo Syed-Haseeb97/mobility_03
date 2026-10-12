@@ -88,7 +88,7 @@ export type Booking = {
   drivingLicense?: string;
   ownerId?: string;
   ownerName?: string;
-  paymentStatus?: "PAID" | "REFUNDED" | "PENDING";
+  paymentStatus?: "PAID" | "REFUNDED" | "PENDING" | "REFUND_PENDING";
   paymentMethod?: "UPI" | "CARD" | "NETBANKING";
   paymentTxnId?: string;
   handover?: {
