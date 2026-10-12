@@ -47,7 +47,15 @@ export async function GET(request: Request) {
       vehicles = vehicles.filter((vehicle) => db.checkAvailability(vehicle.id, start, end));
     }
 
-    return NextResponse.json({ vehicles, count: vehicles.length });
+    const responseVehicles = demoAccessAllowed
+      ? vehicles
+      : vehicles.map((vehicle) => ({
+          ...vehicle,
+          registrationNumber: vehicle.rcVerified ? vehicle.registrationNumber : "",
+          insuranceValidTill: vehicle.insuranceVerified ? vehicle.insuranceValidTill : "",
+        }));
+
+    return NextResponse.json({ vehicles: responseVehicles, count: responseVehicles.length });
   } catch (err) {
     return NextResponse.json({ error: "Failed to fetch vehicles" }, { status: 500 });
   }
