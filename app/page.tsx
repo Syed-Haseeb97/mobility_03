@@ -88,7 +88,7 @@ export default function Home() {
             <div><h3>Cars for the day</h3><p>More room for group projects, groceries, and weekends.</p><span className="home-category-link">Browse cars <ArrowUpRight size={16} /></span></div>
             <span className="home-category-watermark">04</span>
           </Link>
-          <Link className="home-category-card home-category-ev" href="/rent?category=Electric">
+          <Link className="home-category-card home-category-ev" href="/rent?search=Electric">
             <div className="home-category-top"><span>03 / ELECTRIC</span><Zap size={19} /></div>
             <div><h3>Electric rides</h3><p>A quieter option for the everyday campus loop.</p><span className="home-category-link">Explore EVs <ArrowUpRight size={16} /></span></div>
             <span className="home-category-watermark">EV</span>
