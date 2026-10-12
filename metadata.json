@@ -1,0 +1,6 @@
+{
+  "name": "TOONHUB",
+  "description": "Full-viewport 3D character figurine carousel showcase with dynamic transitions",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
