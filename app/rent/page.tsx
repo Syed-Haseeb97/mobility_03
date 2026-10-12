@@ -12,6 +12,7 @@ function RentContent() {
   const initialWheels = searchParams.get("wheels") || "All vehicles";
   const initialCategory = searchParams.get("category") || "All types";
   const initialQuery = searchParams.get("search") || "";
+  const initialQuery = searchParams.get("search") || "";
   const startDate = searchParams.get("start") || "";
   const endDate = searchParams.get("end") || "";
 
