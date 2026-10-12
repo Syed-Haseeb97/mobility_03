@@ -50,6 +50,7 @@ export type Vehicle = {
 };
 
 export type BookingStatus =
+  | "PAYMENT_PENDING"
   | "CONFIRMED"
   | "HANDOVER_PENDING"
   | "ACTIVE_TRIP"
