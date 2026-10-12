@@ -294,7 +294,7 @@ export default function HostDashboard() {
               <strong style={{ fontSize: 22, color: "#4d6b13" }}>
                 {money(data?.metrics.pendingSettlement || 0)}
               </strong>
-              <small>Available to disburse</small>
+              <small>Estimated payout availability (demo)</small>
             </div>
           </div>
 
@@ -323,7 +323,7 @@ export default function HostDashboard() {
                         <p className="muted" style={{ margin: "4px 0" }}>
                           Guest: <strong>{b.customerName || b.guest}</strong> · Phone:{" "}
                           <strong>{b.customerPhone || "On file"}</strong> · DL:{" "}
-                          <strong>{b.drivingLicense || "Verified"}</strong>
+                          <strong>{b.drivingLicense || "Not provided"}</strong>
                         </p>
                         <p className="muted">
                           Dates: {b.start} → {b.end} · Pickup Zone: {b.pickupZone || b.city}
@@ -426,7 +426,7 @@ export default function HostDashboard() {
                             </h3>
                             <p className="muted">
                               Renter: <strong>{b.customerName || b.guest}</strong> · Driving License:{" "}
-                              <strong>{b.drivingLicense || "Verified"}</strong>
+                              <strong>{b.drivingLicense || "Not provided"}</strong>
                             </p>
                             <p className="muted">
                               Helmet Requested: {b.helmetOptionSelected || "1 Helmet Included"}
