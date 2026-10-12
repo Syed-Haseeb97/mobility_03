@@ -112,12 +112,26 @@ export async function PATCH(
       if (existing.status !== "ACTIVE_TRIP") {
         return NextResponse.json({ error: "Only an active trip can be checked in as returned." }, { status: 409 });
       }
+      const closingOdometer = Number(returnRecord?.closingOdometer);
+      const startingOdometer = existing.handover?.startingOdometer;
+      const damageObserved = String(returnRecord?.damageObserved || "").trim();
+      if (
+        !Number.isFinite(closingOdometer) ||
+        closingOdometer <= 0 ||
+        (typeof startingOdometer === "number" && closingOdometer < startingOdometer) ||
+        !damageObserved
+      ) {
+        return NextResponse.json(
+          { error: "Record a valid closing odometer reading and the return-condition inspection." },
+          { status: 400 }
+        );
+      }
 
       const updated = db.updateBookingStatus(id, "COMPLETED", {
         returnRecord: {
           returnTime: new Date().toISOString(),
-          closingOdometer: Number(returnRecord?.closingOdometer) || undefined,
-          damageObserved: returnRecord?.damageObserved || "Not recorded",
+          closingOdometer,
+          damageObserved,
           depositReleased: false,
           depositDeduction: Number(returnRecord?.depositDeduction) || 0,
           depositReleaseNotes: returnRecord?.depositReleaseNotes || "Release pending; no transfer is performed by this demo.",
