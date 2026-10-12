@@ -38,7 +38,7 @@ export async function PUT(
     if (!existing) {
       return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
     }
-    if (existing.status === "pending_review" && body.status === "approved") {
+    if (["pending_review", "rejected", "draft"].includes(existing.status) && body.status === "approved") {
       return NextResponse.json(
         { error: "A host cannot approve their own listing. Wait for the review process." },
         { status: 403 }
