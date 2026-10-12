@@ -121,7 +121,7 @@ export default function BookingsPage() {
             Reservations.
           </h1>
           <p className="page-intro" style={{ marginTop: 14 }}>
-            Monitor scheduled pickups, retrieve tax invoices and receipts, inspect handover
+            Track booking requests, view booking summaries, and review handover
             details, and manage cancellation policies.
           </p>
         </div>
@@ -404,7 +404,7 @@ export default function BookingsPage() {
               <div>
                 <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-1px" }}>MOBILITY PLATFORM</div>
                 <div style={{ fontSize: 10, fontFamily: "var(--mono)", color: "#74786d" }}>
-                  OFFICIAL TAX INVOICE &amp; RENTAL RECEIPT
+                  BOOKING SUMMARY · DEMO ONLY
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
@@ -418,7 +418,7 @@ export default function BookingsPage() {
                 <strong style={{ fontSize: 11, color: "#838779", textTransform: "uppercase", fontFamily: "var(--mono)" }}>Renter</strong>
                 <div style={{ fontWeight: 700, marginTop: 3 }}>{selectedReceipt.customerName || selectedReceipt.guest}</div>
                 <div className="muted">{selectedReceipt.customerEmail}</div>
-                <div className="muted">DL: {selectedReceipt.drivingLicense || "Verified on file"}</div>
+                <div className="muted">DL: {selectedReceipt.drivingLicense || "Not provided"}</div>
               </div>
               <div>
                 <strong style={{ fontSize: 11, color: "#838779", textTransform: "uppercase", fontFamily: "var(--mono)" }}>Partner / Provider</strong>
@@ -434,7 +434,7 @@ export default function BookingsPage() {
                 <span>{money(selectedReceipt.baseTotal || selectedReceipt.total * 0.8)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, color: "#64685b" }}>
-                <span>Damage Waiver &amp; Roadside Protection</span>
+                <span>Estimated damage waiver</span>
                 <span>{money(selectedReceipt.damageWaiver || 100)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, color: "#64685b" }}>
