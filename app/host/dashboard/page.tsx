@@ -47,6 +47,7 @@ export default function HostDashboard() {
   const [fuelBattery, setFuelBattery] = useState("");
   const [helmetsGiven, setHelmetsGiven] = useState("");
   const [handoverNotes, setHandoverNotes] = useState("");
+  const [licenseInspected, setLicenseInspected] = useState(false);
 
   // Return modal state
   const [returnBooking, setReturnBooking] = useState<Booking | null>(null);
@@ -95,6 +96,7 @@ export default function HostDashboard() {
             startingOdometer: Number(startingOdo),
             fuelBatteryLevel: fuelBattery,
             helmetsIssued: Number(helmetsGiven),
+            licenseInspected,
             handoverNotes,
           },
         }),
@@ -597,30 +599,44 @@ export default function HostDashboard() {
                 <label>
                   Fuel / Battery Charge Level
                   <select
+                    required
                     value={fuelBattery}
                     onChange={(e) => setFuelBattery(e.target.value)}
                   >
-                    <option>100% Full</option>
-                    <option>75% Level</option>
-                    <option>50% Level</option>
+                    <option value="">Select level</option>
+                    <option value="100% Full">100% Full</option>
+                    <option value="75% Level">75% Level</option>
+                    <option value="50% Level">50% Level</option>
                   </select>
                 </label>
 
                 <label>
                   ISI Certified Helmets Issued
                   <select
+                    required
                     value={helmetsGiven}
                     onChange={(e) => setHelmetsGiven(e.target.value)}
                   >
-                    <option>1 Certified Helmet</option>
-                    <option>2 Certified Helmets</option>
-                    <option>0 (Customer brought verified helmet / 4-Wheeler)</option>
+                    <option value="">Select helmet count</option>
+                    <option value="1">1 Helmet</option>
+                    <option value="2">2 Helmets</option>
+                    <option value="0">0 (Customer has own helmet / 4-Wheeler)</option>
                   </select>
                 </label>
 
+                <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <input
+                    type="checkbox"
+                    required
+                    checked={licenseInspected}
+                    onChange={(e) => setLicenseInspected(e.target.checked)}
+                  />
+                  I checked the renter’s driving licence against the booking.
+                </label>
                 <label>
                   Handover Inspection Notes
                   <input
+                    required
                     value={handoverNotes}
                     onChange={(e) => setHandoverNotes(e.target.value)}
                   />
@@ -688,6 +704,7 @@ export default function HostDashboard() {
                 <label>
                   Vehicle Condition &amp; Damage Inspection
                   <input
+                    required
                     value={damageNotes}
                     onChange={(e) => setDamageNotes(e.target.value)}
                   />
