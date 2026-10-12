@@ -11,6 +11,7 @@ function RentContent() {
   const initialCity = searchParams.get("city") || "All locations";
   const initialWheels = searchParams.get("wheels") || "All vehicles";
   const initialCategory = searchParams.get("category") || "All types";
+  const initialQuery = searchParams.get("search") || "";
   const startDate = searchParams.get("start") || "";
   const endDate = searchParams.get("end") || "";
 
@@ -18,7 +19,7 @@ function RentContent() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [city, setCity] = useState(initialCity === "" ? "All locations" : initialCity);
   const [category, setCategory] = useState(initialCategory);
   const [wheelType, setWheelType] = useState(initialWheels);
@@ -92,7 +93,7 @@ function RentContent() {
     () =>
       inventory
         .filter((v) => {
-          const textMatches = [v.name, v.make, v.city, v.campusZone || "", v.category, v.wheels || ""]
+          const textMatches = [v.name, v.make, v.city, v.campusZone || "", v.category, v.wheels || "", v.fuel || "", v.description || ""]
             .join(" ")
             .toLowerCase()
             .includes(query.toLowerCase());
