@@ -39,7 +39,7 @@ export async function PUT(
       return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
     }
     if (
-      (existing.status === "pending_review" || existing.status === "rejected" || existing.status === "draft") &&
+      (existing.status === "pending_review" || existing.status === "rejected") &&
       body.status === "approved"
     ) {
       return NextResponse.json(
