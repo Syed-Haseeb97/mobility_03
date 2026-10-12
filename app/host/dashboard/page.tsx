@@ -531,12 +531,12 @@ export default function HostDashboard() {
                       <div>
                         <div style={{ fontWeight: 700, fontSize: 13 }}>{p.id} · {p.payoutMethod}</div>
                         <div className="muted" style={{ fontSize: 11, marginTop: 3 }}>
-                          UTR: {p.utrNumber || "TRANSFERRED"} · {p.destinationAccount} · {p.createdAt.slice(0, 10)}
+                          Reference: {p.utrNumber || "Not transferred"} · {p.destinationAccount} · {p.createdAt.slice(0, 10)}
                         </div>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <div style={{ fontWeight: 800, fontSize: 15, color: "#3f5911" }}>
-                          +{money(p.netSettlement)}
+                        <div style={{ fontWeight: 800, fontSize: 15, color: p.status === "PROCESSED" ? "#3f5911" : "#8b6b24" }}>
+                          {p.status === "PROCESSED" ? "+" : ""}{money(p.netSettlement)}
                         </div>
                         <span className="pill" style={{ background: "#e8f2cb", color: "#3f5911" }}>
                           {p.status}
