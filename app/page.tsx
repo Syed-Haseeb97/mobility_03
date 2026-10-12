@@ -6,15 +6,15 @@ import { db } from "@/lib/server/db";
 import { VehicleCard } from "@/components/vehicle-card";
 import { HomeSearch } from "@/components/home-search";
 
+export const dynamic = "force-dynamic";
+
 function getFeaturedVehicles(): Vehicle[] {
   try {
     const liveVehicles = db.getVehicles({ status: "approved" });
-    if (liveVehicles.length) {
-      return liveVehicles.slice(0, 3).map((vehicle) => ({
-        ...vehicle,
-        host: vehicle.ownerName,
-      }));
-    }
+    return liveVehicles.slice(0, 3).map((vehicle) => ({
+      ...vehicle,
+      host: vehicle.ownerName,
+    }));
   } catch {
     // Keep the homepage useful if the local demo store has not been initialized.
   }
