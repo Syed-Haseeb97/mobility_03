@@ -77,6 +77,7 @@ export interface VehicleRecord {
 }
 
 export type BookingStatus =
+  | "PAYMENT_PENDING"
   | "CONFIRMED"
   | "HANDOVER_PENDING"
   | "ACTIVE_TRIP"
