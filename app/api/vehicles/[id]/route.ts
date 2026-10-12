@@ -34,6 +34,23 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
+    const existing = db.getVehicleById(id);
+    if (!existing) {
+      return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
+    }
+    if (existing.status === "pending_review" && body.status === "approved") {
+      return NextResponse.json(
+        { error: "A host cannot approve their own listing. Wait for the review process." },
+        { status: 403 }
+      );
+    }
+    if (body.rcVerified === true || body.insuranceVerified === true) {
+      return NextResponse.json(
+        { error: "Document verification can only be recorded by an authorized review process." },
+        { status: 403 }
+      );
+    }
+
     const updated = db.updateVehicle(id, body);
     if (!updated) {
       return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
