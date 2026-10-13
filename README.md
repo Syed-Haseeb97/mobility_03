@@ -7,16 +7,16 @@
 
 ## 1. Project Overview & Architecture
 
-Mobility is a fully functional, production-ready vehicle rental marketplace engineered for college campuses, tech parks, and urban transit edges. It connects student and faculty renters with authorized vehicle owners and commercial fleet operators.
+Mobility is a campus-first vehicle rental marketplace prototype for college campuses, tech parks, and urban transit edges. Production use requires configured authentication, authorization, payment processing, and operational verification. It connects student and faculty renters with authorized vehicle owners and commercial fleet operators.
 
 ### Key Highlights
 - **Formal Automotive Identity:** Replaced all sensationalist and informal toy gimmicks (such as *"mileage king"*, burnout animations, wheelie simulations, and synthesizer horns) with an executive, institutional inspection studio featuring 3D perspective parallax, technical dimension sheets, and regulatory verification status.
 - **Dynamic Owner-Authored Listings:** Every listing features descriptions, pickup guidelines, and usage terms written directly by the host who lists the vehicle for rent.
-- **Persistent Backend & Database:** Backed by server-side atomic persistence (`data/mobility-store.json`), supporting real multi-user state, booking concurrency locks, and financial ledgers.
+- **Prototype persistence:** Uses a server-side JSON store (`data/mobility-store.json`) for local demos. This is not a substitute for a transactional managed database in a multi-instance production deployment.
 - **Three Authenticated Application Roles:**
-  - **Customer / Renter:** Discover vehicles by campus zone, inspect documents, calculate authoritative rental rates, provide Driving License (DL), reserve with concurrency protection, access itemized tax invoices, and rate trips.
-  - **Vehicle Owner / Rental Partner:** Comprehensive 3-step listing builder, live preview, garage management, key handover digital checklist (odometer, fuel level, helmet issue), return check-in with deposit release, revenue tracking (10% platform fee), and automated settlement requests.
-  - **Platform Administrator:** Central operations portal to audit listings, approve/suspend vehicles, verify driver KYC credentials, oversee active campus trips, and manage payouts.
+  - **Customer / Renter:** Discover vehicles by campus zone, review listing details, provide booking information, and explore the intended rental flow. The current booking flow is a demo and does not process real payments.
+  - **Vehicle Owner / Rental Partner:** Listing builder, live preview, garage management, and prototype handover/return and earnings screens. Production access requires server-enforced owner authorization and a real settlement integration.
+  - **Platform Administrator:** Prototype operations screens for listing review, KYC status, bookings, and payouts. Production access requires authenticated administrator authorization and auditable workflows.
 
 ---
 
@@ -42,7 +42,7 @@ Mobility is a fully functional, production-ready vehicle rental marketplace engi
 - **UI & State:** React 19, TypeScript 5.8
 - **Styling:** Tailwind CSS v4, PostCSS, Custom DM Mono & Manrope Typography
 - **Graphics & 3D Parallax:** Three.js, Lucide Icons
-- **Persistence:** Server-side atomic JSON database store (`lib/server/db.ts`) with concurrency checking
+- **Persistence:** Local JSON prototype store (`lib/server/db.ts`); migrate to a transactional database before production
 
 ---
 
@@ -68,7 +68,7 @@ Open [http://localhost:3000](http://localhost:3000) in your web browser.
 
 ## 5. Main Route Directory
 
-- `/` — Homepage featuring the 3D Vehicle Fleet Inspector, full-viewport showcase carousel, campus search panel, and curated verified inventory.
+- `/` — Campus-first landing page with animated hero, date-aware search, vehicle categories, published listings, rental steps, and partner CTA.
 - `/rent` — Vehicle marketplace catalog with campus zone filter, vehicle type filter (2-Wheeler vs 4-Wheeler), category, and sort controls.
 - `/rent/vehicle/[id]` — Detailed vehicle profile showing owner's custom written description, pickup bay coordinates, document verification badges, ISI helmet option, and authoritative checkout.
 - `/rent/bookings` — Customer trips dashboard: upcoming rides, active journeys, completed trips, tax invoices / receipts, cancellation with automated refund calculation, and star reviews.
@@ -82,9 +82,22 @@ Open [http://localhost:3000](http://localhost:3000) in your web browser.
 
 ---
 
-## 6. Regulatory & Safety Standards
+## 6. Production readiness and demo limitations
 
-- **Registration Certificate (RC):** Cross-referenced against state transport database.
-- **Commercial Insurance:** Comprehensive cover with third-party liability and roadside assistance.
-- **Mandatory ISI Helmet Policy:** Every two-wheeler rental includes clean, sanitized, certified protective headgear.
-- **Campus Speed Limits:** Strict 25 km/h campus perimeter speed adherence logged in rental guidelines.
+- The local prototype supports persona switching and seeded records for demonstrations only; they are not real authentication or live inventory.
+- Production uses an empty in-memory view instead of the checked-in demo JSON store and refuses writes until a real database adapter is connected. Sensitive booking, review, admin, owner/payout, session mutation, and vehicle mutation endpoints are intentionally blocked until server-side authentication/authorization and required provider integrations are configured.
+- Demo bookings do not process payment; a displayed booking or payment status must not be treated as a real financial transaction.
+- New vehicle listings start in `pending_review` and are not automatically marked as verified.
+- Before a public launch, review every API route for authentication, role and resource ownership checks; migrate JSON storage to a transactional database; integrate a payment provider with verified webhooks/idempotency; and validate the actual RC/insurance evidence process.
+
+## 7. Safety controls to implement and verify
+
+The following are product requirements, not claims that MOBILITY has independently verified every vehicle or operator:
+
+- **Registration and insurance:** Collect the relevant documents, validate them through an authorized process, record expiry dates, and show a review status only after evidence has been checked.
+- **Helmets and handover:** Confirm the availability and condition of appropriate helmets at handover for two-wheelers; record the actual handover checklist.
+- **Local rules:** Publish the applicable speed limits and campus rules only after confirmation with the relevant institution and local authorities.
+- **Incident and refund handling:** Define real support, cancellation, dispute and refund procedures before accepting public bookings.
+- **Privacy:** Restrict driving-license, contact, booking and financial data to the people and services that need it, using server-enforced authorization.
+
+These controls must be operationally implemented and tested before MOBILITY is marketed as a fully verified or production-ready rental service.

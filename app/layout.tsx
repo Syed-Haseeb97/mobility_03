@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import "./landing.css";
 import { SiteHeader } from "@/components/site-header";
 import { SessionProvider } from "@/components/session-provider";
 
 export const metadata: Metadata = {
-  title: "MOBILITY — Production Vehicle Rental Marketplace",
+  title: "MOBILITY — Your campus, in motion",
   description:
-    "Campus & urban two-wheeler and vehicle rental marketplace connecting verified customers with authorized partners and rental operators.",
+    "Find bikes, scooters and cars for campus and city travel. Compare listings, pickup details and rental terms in one place.",
   applicationName: "MOBILITY",
 };
 
@@ -50,7 +51,7 @@ export default function RootLayout({
                     M<span>O</span>BILITY<span className="wordmark-dot">.</span>
                   </Link>
                   <p style={{ marginTop: 12, lineHeight: 1.7, color: "#a7ab9e" }}>
-                    Campus &amp; urban vehicle rental marketplace. Verified hosts, authoritative reservation protection, transparent insurance, and helmet-compliant rides.
+                    A simpler way to find local rides. Review vehicle details, pickup information and rental terms before you book.
                   </p>
                 </div>
                 <div style={{ display: "flex", gap: 36, flexWrap: "wrap" }}>
@@ -70,7 +71,7 @@ export default function RootLayout({
                     </span>
                     <div style={{ display: "grid", gap: 7, fontSize: 13, color: "#cbd0c5" }}>
                       <Link href="/rent">Explore Vehicles</Link>
-                      <Link href="/rent/bookings">My Reservations</Link>
+                      {process.env.NODE_ENV !== "production" && <Link href="/rent/bookings">My Reservations</Link>}
                       <Link href="/guidelines">Campus Guidelines</Link>
                     </div>
                   </div>
@@ -91,9 +92,9 @@ export default function RootLayout({
                     </span>
                     <div style={{ display: "grid", gap: 7, fontSize: 13, color: "#cbd0c5" }}>
                       <Link href="/list-your-vehicle">Become a Partner</Link>
-                      <Link href="/host/dashboard">Host Dashboard</Link>
-                      <Link href="/host/listings">Garage Management</Link>
-                      <Link href="/host/add-vehicle">List New Vehicle</Link>
+                      {process.env.NODE_ENV !== "production" && <Link href="/host/dashboard">Host Dashboard</Link>}
+                      {process.env.NODE_ENV !== "production" && <Link href="/host/listings">Garage Management</Link>}
+                      {process.env.NODE_ENV !== "production" && <Link href="/host/add-vehicle">List New Vehicle</Link>}
                     </div>
                   </div>
 
@@ -112,7 +113,7 @@ export default function RootLayout({
                       Governance
                     </span>
                     <div style={{ display: "grid", gap: 7, fontSize: 13, color: "#cbd0c5" }}>
-                      <Link href="/admin">Platform Operations Desk</Link>
+                      {process.env.NODE_ENV !== "production" && <Link href="/admin">Platform Operations Desk</Link>}
                       <Link href="/guidelines#verification">Verification Standards</Link>
                       <Link href="/guidelines#safety">Safety &amp; Compliance</Link>
                     </div>
@@ -132,9 +133,9 @@ export default function RootLayout({
                   color: "#8b9084",
                 }}
               >
-                <span>© 2026 MOBILITY PLATFORM · OPERATING IN FULL COMPLIANCE WITH MV ACT &amp; CAMPUS TRANSPORTATION POLICIES</span>
+                <span>© 2026 MOBILITY · CAMPUS &amp; CITY TRAVEL</span>
                 <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: 1 }}>
-                  SECURE TRANSACTIONS · AUTHENTICATED ROLES
+                  CLEAR LISTINGS · INFORMED BOOKINGS
                 </span>
               </div>
             </div>

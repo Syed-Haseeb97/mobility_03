@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
+import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
 
 export async function GET(request: Request) {
+  const blocked = blockUnconfiguredProductionAccess("Administrative records");
+  if (blocked) return blocked;
+
   try {
     const store = db.getStore();
 
@@ -43,6 +47,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const blocked = blockUnconfiguredProductionAccess("Administrative actions");
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
     const { action, vehicleId, userId, disputeId, status, reason, notes } = body;

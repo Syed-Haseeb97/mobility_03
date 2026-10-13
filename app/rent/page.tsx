@@ -10,6 +10,8 @@ function RentContent() {
   const searchParams = useSearchParams();
   const initialCity = searchParams.get("city") || "All locations";
   const initialWheels = searchParams.get("wheels") || "All vehicles";
+  const initialStart = searchParams.get("start") || "";
+  const initialEnd = searchParams.get("end") || "";
 
   const [inventory, setInventory] = useState<Vehicle[]>(seedVehicles);
   const [loading, setLoading] = useState(true);
@@ -24,11 +26,15 @@ function RentContent() {
   const fetchVehicles = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/vehicles");
+      const params = new URLSearchParams();
+      if (initialStart) params.set("start", initialStart);
+      if (initialEnd) params.set("end", initialEnd);
+      const queryString = params.toString();
+      const res = await fetch(queryString ? `/api/vehicles?${queryString}` : "/api/vehicles");
       if (res.ok) {
         const data = await res.json();
-        if (data.vehicles && data.vehicles.length > 0) {
-          // Format into Vehicle shape
+        if (Array.isArray(data.vehicles)) {
+          // Format into Vehicle shape. An empty API result is real: do not replace it with seed inventory.
           const formatted: Vehicle[] = data.vehicles.map((v: any) => ({
             id: v.id,
             name: v.name,
@@ -49,12 +55,12 @@ function RentContent() {
             trips: v.trips || 0,
             image: v.image,
             description: v.description,
-            host: v.ownerName || "Verified Host",
+            host: v.ownerName || "Vehicle host",
             ownerId: v.ownerId,
             registrationNumber: v.registrationNumber,
             insuranceValidTill: v.insuranceValidTill,
-            rcVerified: v.rcVerified ?? true,
-            insuranceVerified: v.insuranceVerified ?? true,
+            rcVerified: v.rcVerified ?? false,
+            insuranceVerified: v.insuranceVerified ?? false,
             helmetOption: v.helmetOption,
             helmetCondition: v.helmetCondition,
             guidelines: v.guidelines,
@@ -70,7 +76,7 @@ function RentContent() {
     } finally {
       setLoading(false);
     }
-    setInventory(seedVehicles);
+    setInventory(process.env.NODE_ENV === "production" ? [] : seedVehicles);
   };
 
   useEffect(() => {
@@ -91,7 +97,6 @@ function RentContent() {
           const wheelMatches = wheelType === "All vehicles" || v.wheels === wheelType;
           const rateMatches =
             rateFilter === "All rates" ||
-            (rateFilter === "Hourly flex" && (v.hourlyPrice || 0) > 0) ||
             (rateFilter === "Under ₹1,000/day" && v.price < 1000);
 
           return textMatches && cityMatches && catMatches && wheelMatches && rateMatches;
@@ -112,7 +117,7 @@ function RentContent() {
     <main className="page-shell">
       <div className="page-top">
         <div>
-          <div className="eyebrow">Verified Marketplace / Live Inventory</div>
+          <div className="eyebrow">Explore the marketplace</div>
           <h1 className="page-heading">
             Find your kind
             <br />
@@ -120,8 +125,7 @@ function RentContent() {
           </h1>
         </div>
         <p className="page-intro">
-          Explore inspected two-wheelers for quick campus errands and passenger vehicles for longer
-          regional journeys. Filter by designated campus zone, pricing structure, and vehicle class.
+          Browse bikes, scooters and cars by city, vehicle type and price. Check each listing’s pickup details, documentation status and rental terms before you decide.
         </p>
       </div>
 
@@ -189,7 +193,6 @@ function RentContent() {
           onChange={(e) => setRateFilter(e.target.value)}
         >
           <option>All rates</option>
-          <option>Hourly flex</option>
           <option>Under ₹1,000/day</option>
         </select>
 
@@ -213,9 +216,9 @@ function RentContent() {
           marginBottom: 16,
         }}
       >
-        <div className="result-count" style={{ marginBottom: 0 }}>
+        <div className="result-count" style={{ marginBottom: 0 }} aria-live="polite">
           <SlidersHorizontal size={12} style={{ display: "inline", marginRight: 7 }} />
-          {list.length} verified vehicles available
+          {loading ? "Finding available rides…" : `${list.length} vehicles matching your filters`}
         </div>
         <button
           type="button"
@@ -236,7 +239,12 @@ function RentContent() {
         </button>
       </div>
 
-      {list.length ? (
+      {loading ? (
+        <div className="empty-state" role="status">
+          <h3>Finding your next ride…</h3>
+          <p className="muted">Checking the current marketplace inventory.</p>
+        </div>
+      ) : list.length ? (
         <div className="vehicle-grid">
           {list.map((v) => (
             <VehicleCard key={v.id} vehicle={v} />
@@ -283,8 +291,7 @@ function RentContent() {
           <div>
             <div style={{ fontWeight: 700, fontSize: 13 }}>Institutional &amp; Regulatory Standard</div>
             <p className="muted" style={{ margin: 0 }}>
-              All listed vehicles operate with verified registration certificates (RC), valid commercial
-              or private-hire insurance, and mandatory helmet compliance at pickup.
+              Documentation and safety details vary by listing. Review the information shown for each vehicle and confirm any required documents with the host before booking.
             </p>
           </div>
         </div>

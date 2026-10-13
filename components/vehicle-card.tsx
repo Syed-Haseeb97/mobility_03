@@ -21,7 +21,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           <span className="vehicle-tag">
             {vehicle.wheels || (is2Wheeler ? "2-Wheeler" : "4-Wheeler")} · {vehicle.category}
           </span>
-          {vehicle.rcVerified && (
+          {vehicle.rcVerified && vehicle.insuranceVerified && (
             <span
               style={{
                 position: "absolute",
@@ -51,9 +51,9 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <div className="vehicle-meta">
           <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
             <MapPin size={11} />
-            {vehicle.campusZone ? vehicle.campusZone.split("/")[0].trim() : vehicle.city}
+            {vehicle.showPickupAddress !== false ? (vehicle.addressLine1 || vehicle.pickupAddress?.split(",")[0].trim() || vehicle.city) : vehicle.city}{vehicle.city && vehicle.showPickupAddress !== false ? ", " + vehicle.city : ""}
           </span>
-          <span>★ {vehicle.rating.toFixed(2)} · {vehicle.trips} trips</span>
+          <span>{vehicle.trips > 0 && vehicle.rating > 0 ? <>★ {vehicle.rating.toFixed(2)} · {vehicle.trips} trips</> : <strong style={{ color: "#546e14" }}>New</strong>}</span>
         </div>
 
         <h3 className="vehicle-title">
@@ -63,27 +63,24 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         </h3>
 
         <div className="vehicle-specs">
-          <span>
-            <Users size={13} /> {vehicle.seats} seats
-          </span>
-          <span>
-            <Gauge size={13} /> {vehicle.transmission}
-          </span>
-          <span>
-            <Fuel size={13} /> {vehicle.fuel}
-          </span>
-          {is2Wheeler && vehicle.helmetOption && (
+          {vehicle.showSeats !== false && (
+            <span><Users size={13} /> {vehicle.seats} seats</span>
+          )}
+          {vehicle.showTransmission !== false && (
+            <span><Gauge size={13} /> {vehicle.transmission}</span>
+          )}
+          {vehicle.showFuel !== false && (
+            <span><Fuel size={13} /> {vehicle.fuel}</span>
+          )}
+          {is2Wheeler && (vehicle.helmetIncluded ?? Boolean(vehicle.helmetOption?.includes("Included"))) && (
             <span style={{ color: "#546e14", fontWeight: 600 }}>
-              <HardHat size={13} /> {vehicle.helmetOption.includes("Included") ? "Helmet Included" : "Helmet on Request"}
+              <HardHat size={13} /> Helmet Included
             </span>
           )}
         </div>
 
         <div style={{ fontSize: 11, color: "#74786d", marginTop: 10, display: "flex", justifyContent: "space-between" }}>
           <span>Host: {vehicle.host.split("(")[0].trim()}</span>
-          {vehicle.hourlyPrice && (
-            <span style={{ fontFamily: "var(--mono)", color: "#5b663b" }}>₹{vehicle.hourlyPrice}/hr</span>
-          )}
         </div>
 
         <div className="vehicle-bottom">

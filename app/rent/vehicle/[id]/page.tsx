@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { money, daysBetween, type Vehicle } from "@/lib/data";
 import { useSession } from "@/components/session-provider";
+import { getIndiaDateString, nextDateString } from "@/lib/date-utils";
 
 export default function VehicleDetail() {
   const params = useParams<{ id: string }>();
@@ -31,6 +32,7 @@ export default function VehicleDetail() {
   const { currentUser } = useSession();
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [activePhoto, setActivePhoto] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // Booking form state
@@ -192,9 +194,7 @@ export default function VehicleDetail() {
 
       setBookingNotice({
         type: "success",
-        message: `Booking Confirmed! Reference: ${data.booking.id}. Payment of ${money(
-          data.booking.total
-        )} processed securely via ${paymentMethod}.`,
+        message: `Demo booking created. Reference: ${data.booking.id}. No real payment was processed; the displayed total is for demonstration only.`,
         bookingId: data.booking.id,
       });
 
@@ -243,7 +243,7 @@ export default function VehicleDetail() {
       <div className="page-top" style={{ marginTop: 24 }}>
         <div>
           <div className="eyebrow">
-            {vehicle.city} · {vehicle.campusZone || "Campus Edge"} · {vehicle.wheels}
+            {vehicle.city}{vehicle.state ? ", " + vehicle.state : ""} · {vehicle.wheels}
           </div>
           <h1 className="page-heading">
             {vehicle.make}
@@ -251,8 +251,8 @@ export default function VehicleDetail() {
             {vehicle.name}
           </h1>
           <p className="page-intro" style={{ marginTop: 8 }}>
-            ★ {vehicle.rating.toFixed(2)} · {vehicle.trips} verified trips · Hosted by{" "}
-            <strong>{vehicle.host}</strong>
+            {vehicle.trips > 0 && vehicle.rating > 0 ? <>★ {vehicle.rating.toFixed(2)} · {vehicle.trips} trips · </> : <span style={{ color: "#546e14", fontWeight: 700 }}>New listing · </span>}
+            Hosted by <strong>{vehicle.host}</strong>
           </p>
         </div>
 
@@ -260,18 +260,7 @@ export default function VehicleDetail() {
           <div className="price">
             {money(vehicle.price)} <small>/ day</small>
           </div>
-          {vehicle.hourlyPrice && (
-            <div
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: 12,
-                color: "#6b7d2f",
-                marginTop: 4,
-              }}
-            >
-              Hourly Flex: ₹{vehicle.hourlyPrice} / hr
-            </div>
-          )}
+
         </div>
       </div>
 
@@ -281,7 +270,7 @@ export default function VehicleDetail() {
           <div style={{ position: "relative" }}>
             <Image
               className="detail-image"
-              src={vehicle.image}
+              src={[vehicle.image, ...(vehicle.additionalPhotos || [])][activePhoto] || vehicle.image}
               alt={vehicle.name}
               width={1200}
               height={750}
@@ -314,27 +303,31 @@ export default function VehicleDetail() {
             )}
           </div>
 
+          {(vehicle.additionalPhotos?.length || 0) > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(76px, 96px))", gap: 8, marginTop: 10 }}>
+              {[vehicle.image, ...(vehicle.additionalPhotos || [])].map((photo, index) => (
+                <button
+                  key={photo + index}
+                  type="button"
+                  onClick={() => setActivePhoto(index)}
+                  aria-label={"Show vehicle photo " + (index + 1)}
+                  aria-pressed={activePhoto === index}
+                  style={{ padding: 0, height: 70, overflow: "hidden", border: activePhoto === index ? "2px solid #8fa82e" : "1px solid var(--line)", background: "#e6e8df" }}
+                >
+                  <img src={photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* QUICK SPEC TILES */}
-          <div className="stat-row" style={{ marginTop: 20 }}>
-            <div className="stat">
-              <strong>{vehicle.seats}</strong>
-              <span>
-                <Users size={12} style={{ display: "inline" }} /> Seating Capacity
-              </span>
+          {(vehicle.showSeats !== false || vehicle.showTransmission !== false || vehicle.showFuel !== false) && (
+            <div className="stat-row" style={{ marginTop: 20 }}>
+              {vehicle.showSeats !== false && <div className="stat"><strong>{vehicle.seats}</strong><span><Users size={12} style={{ display: "inline" }} /> Seating Capacity</span></div>}
+              {vehicle.showTransmission !== false && <div className="stat"><strong>{vehicle.transmission}</strong><span><Gauge size={12} style={{ display: "inline" }} /> Transmission</span></div>}
+              {vehicle.showFuel !== false && <div className="stat"><strong>{vehicle.fuel}</strong><span><Fuel size={12} style={{ display: "inline" }} /> Powertrain</span></div>}
             </div>
-            <div className="stat">
-              <strong>{vehicle.transmission}</strong>
-              <span>
-                <Gauge size={12} style={{ display: "inline" }} /> Transmission
-              </span>
-            </div>
-            <div className="stat">
-              <strong>{vehicle.fuel}</strong>
-              <span>
-                <Fuel size={12} style={{ display: "inline" }} /> Powertrain
-              </span>
-            </div>
-          </div>
+          )}
 
           {/* OWNER LISTING DESCRIPTION */}
           <div style={{ padding: "30px 0", borderBottom: "1px solid var(--line)" }}>
@@ -358,6 +351,7 @@ export default function VehicleDetail() {
           </div>
 
           {/* PICKUP & LOGISTICAL SPECIFICATIONS */}
+          {vehicle.showPickupAddress !== false && (
           <div style={{ padding: "26px 0", borderBottom: "1px solid var(--line)" }}>
             <div className="eyebrow">Logistics &amp; Handover Location</div>
             <h3 style={{ fontSize: 18, margin: "10px 0 12px" }}>Designated Collection Point</h3>
@@ -373,9 +367,9 @@ export default function VehicleDetail() {
               <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                 <MapPin size={16} className="text-[#678220]" style={{ marginTop: 2 }} />
                 <div>
-                  <strong>{vehicle.campusZone || "Campus Edge Transit Hub"}</strong>
+                  <strong>Pickup address</strong>
                   <p className="muted" style={{ margin: "2px 0 0" }}>
-                    {vehicle.pickupAddress || "Pickup kiosk coordinates provided upon reservation."}
+                    {[vehicle.addressLine1 || vehicle.pickupAddress, vehicle.addressLine2, vehicle.city, vehicle.state, vehicle.country, vehicle.pinCode].filter(Boolean).join(", ") || "Pickup details will be confirmed with the host."}
                   </p>
                 </div>
               </div>
@@ -401,9 +395,10 @@ export default function VehicleDetail() {
               )}
             </div>
           </div>
+          )}
 
           {/* HELMET & SAFETY PROTOCOL */}
-          {is2Wheeler && (
+          {is2Wheeler && (vehicle.helmetIncluded ?? Boolean(vehicle.helmetOption?.includes("Included"))) && (
             <div style={{ padding: "26px 0", borderBottom: "1px solid var(--line)" }}>
               <div className="eyebrow">Campus Safety &amp; Helmet Protocol</div>
               <h3 style={{ fontSize: 18, margin: "10px 0 12px" }}>Helmet Equipment Status</h3>
@@ -420,11 +415,10 @@ export default function VehicleDetail() {
                 <HardHat size={28} className="text-[#55691d]" />
                 <div>
                   <strong style={{ color: "#2d3810" }}>
-                    {vehicle.helmetOption || "1 ISI Certified Helmet Included"}
+                    {vehicle.helmetOption || "Helmet included"}
                   </strong>
                   <p style={{ margin: "3px 0 0", fontSize: 12, color: "#5a6839" }}>
-                    {vehicle.helmetCondition ||
-                      "Sanitized ISI/DOT certified helmet with functional visor provided at key handover."}
+                    {vehicle.helmetCondition || "Helmet details provided by the host."}
                   </p>
                 </div>
               </div>
@@ -488,7 +482,7 @@ export default function VehicleDetail() {
           <div className="eyebrow">Reservation Desk</div>
           <h2>Configure Rental</h2>
           <p className="muted">
-            Instant booking with server-side concurrency check and verifiable receipt.
+            Review your dates, pickup details and itemized estimate before continuing. This prototype does not collect real payment.
           </p>
 
           <form onSubmit={handleBook}>
@@ -498,11 +492,11 @@ export default function VehicleDetail() {
                 <input
                   type="date"
                   required
-                  min={new Date().toISOString().slice(0, 10)}
+                  min={getIndiaDateString()}
                   value={start}
                   onChange={(e) => {
                     setStart(e.target.value);
-                    if (end && e.target.value > end) setEnd("");
+                    if (end && e.target.value >= end) setEnd("");
                   }}
                 />
               </label>
@@ -512,7 +506,7 @@ export default function VehicleDetail() {
                 <input
                   type="date"
                   required
-                  min={start || new Date().toISOString().slice(0, 10)}
+                  min={start ? nextDateString(start) : getIndiaDateString()}
                   value={end}
                   onChange={(e) => setEnd(e.target.value)}
                 />
@@ -575,7 +569,7 @@ export default function VehicleDetail() {
               )}
 
               <label>
-                Payment Method
+                Demo payment option (not processed)
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value as any)}

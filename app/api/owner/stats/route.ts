@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
+import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
 
 export async function GET(request: Request) {
+  const blocked = blockUnconfiguredProductionAccess("Owner financial records");
+  if (blocked) return blocked;
+
   try {
     const { searchParams } = new URL(request.url);
     const ownerId = searchParams.get("ownerId") || "usr-host-1";
@@ -53,6 +57,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const blocked = blockUnconfiguredProductionAccess("Payout processing");
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
     const { ownerId, amount, destinationAccount, payoutMethod } = body;

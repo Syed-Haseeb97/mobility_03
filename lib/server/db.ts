@@ -48,6 +48,11 @@ export interface VehicleRecord {
   city: string;
   campusZone: string;
   pickupAddress: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  state?: string;
+  country?: string;
+  pinCode?: string;
   price: number; // daily rate in INR
   hourlyPrice: number; // hourly rate in INR
   deposit: number; // refundable deposit in INR
@@ -68,6 +73,11 @@ export interface VehicleRecord {
   trips: number;
   image: string;
   additionalPhotos?: string[];
+  showPickupAddress?: boolean;
+  showTransmission?: boolean;
+  showFuel?: boolean;
+  showSeats?: boolean;
+  helmetIncluded?: boolean;
   description: string;
   hostNotes?: string;
   guidelines?: string;
@@ -703,7 +713,21 @@ const SEED_PAYOUTS: PayoutRecord[] = [
 
 const SEED_DISPUTES: DisputeRecord[] = [];
 
+function emptyDatabaseStore(): DatabaseStore {
+  return {
+    users: [],
+    vehicles: [],
+    bookings: [],
+    payouts: [],
+    disputes: [],
+  };
+}
+
 function loadDatabase(): DatabaseStore {
+  // The checked-in JSON file is demonstration data, not a production database.
+  // Never read it in production; until a real database is configured, serve an empty store.
+  if (process.env.NODE_ENV === "production") return emptyDatabaseStore();
+
   try {
     ensureDirectoryExistence(DB_FILE);
     if (!fs.existsSync(DB_FILE)) {
@@ -732,6 +756,9 @@ function loadDatabase(): DatabaseStore {
 }
 
 function saveDatabase(data: DatabaseStore) {
+  // Fail closed: production persistence must be provided by a real database adapter.
+  if (process.env.NODE_ENV === "production") return;
+
   ensureDirectoryExistence(DB_FILE);
   const tmpFile = DB_FILE + ".tmp";
   fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2), "utf-8");

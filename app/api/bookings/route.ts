@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { db, BookingRecord } from "@/lib/server/db";
 import { daysBetween } from "@/lib/data";
+import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
+import { getIndiaDateString, isDateOnly } from "@/lib/date-utils";
 
 export async function GET(request: Request) {
+  const blocked = blockUnconfiguredProductionAccess("Booking records");
+  if (blocked) return blocked;
+
   try {
     const { searchParams } = new URL(request.url);
     const customerId = searchParams.get("customerId") || undefined;
@@ -22,6 +27,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const blocked = blockUnconfiguredProductionAccess("Booking creation");
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
 
@@ -72,6 +80,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate strict date-only values before checking availability.
+    if (!isDateOnly(start) || !isDateOnly(end) || start < getIndiaDateString() || end <= start) {
+      return NextResponse.json(
+        { error: "Choose a valid pickup date from today onward and a return date after pickup." },
+        { status: 400 }
+      );
+    }
+
     // 2. Concurrency & Availability Protection
     const isAvailable = db.checkAvailability(vehicleId, start, end);
     if (!isAvailable) {
@@ -103,12 +119,6 @@ export async function POST(request: Request) {
     const helmetFee = 0; // Helmets provided free with rental in campus policy
 
     const total = baseTotal + damageWaiver + platformFee + taxes;
-
-    // 4. Secure Transaction Reference
-    const paymentTxnId =
-      (paymentMethod === "UPI" ? "UPI/" : paymentMethod === "CARD" ? "CARD/" : "NB/") +
-      Date.now().toString().slice(-8) +
-      Math.floor(1000 + Math.random() * 9000);
 
     const booking: Omit<BookingRecord, "id" | "createdAt"> = {
       vehicleId: vehicle.id,
@@ -144,10 +154,10 @@ export async function POST(request: Request) {
       securityDeposit,
       total,
 
-      paymentStatus: "PAID",
+      paymentStatus: "PENDING",
       paymentMethod: paymentMethod || "UPI",
-      paymentTxnId,
-      paidAt: new Date().toISOString(),
+      paymentTxnId: "DEMO-NOT-A-REAL-TRANSACTION",
+      paidAt: "",
 
       status: "CONFIRMED",
     };
@@ -157,7 +167,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         booking: newBooking,
-        message: "Booking confirmed and payment processed successfully.",
+        message: "Demo booking created. No real payment was processed.",
         success: true,
       },
       { status: 201 }

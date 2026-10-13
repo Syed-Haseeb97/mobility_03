@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
+import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
 
 export async function GET(
   request: Request,
@@ -8,7 +9,7 @@ export async function GET(
   const { id } = await params;
   const vehicle = db.getVehicleById(id);
 
-  if (!vehicle) {
+  if (!vehicle || (process.env.NODE_ENV === "production" && vehicle.status !== "approved")) {
     return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
   }
 
@@ -19,6 +20,9 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const blocked = blockUnconfiguredProductionAccess("Vehicle updates");
+  if (blocked) return blocked;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -38,6 +42,9 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const blocked = blockUnconfiguredProductionAccess("Vehicle deactivation");
+  if (blocked) return blocked;
+
   const { id } = await params;
   const updated = db.setVehicleStatus(id, "inactive");
 

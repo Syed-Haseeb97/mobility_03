@@ -25,6 +25,17 @@ export type Vehicle = {
   city: string;
   campusZone?: string;
   pickupAddress?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  state?: string;
+  country?: string;
+  pinCode?: string;
+  additionalPhotos?: string[];
+  showPickupAddress?: boolean;
+  showTransmission?: boolean;
+  showFuel?: boolean;
+  showSeats?: boolean;
+  helmetIncluded?: boolean;
   price: number; // daily rate
   hourlyPrice?: number;
   deposit?: number;
