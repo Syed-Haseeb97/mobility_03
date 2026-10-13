@@ -9,7 +9,7 @@ export async function GET(
   const { id } = await params;
   const vehicle = db.getVehicleById(id);
 
-  if (!vehicle || (false && vehicle.status !== "approved")) {
+  if (!vehicle) {
     return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
   }
 
