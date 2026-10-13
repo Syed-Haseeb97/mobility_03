@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, HardHat, ShieldCheck, MapPin, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, HardHat, ShieldCheck, UploadCloud, X } from "lucide-react";
 import { type VehicleCategory, type VehicleWheels } from "@/lib/data";
 import { useSession } from "@/components/session-provider";
 
@@ -18,9 +18,12 @@ export default function AddVehicle() {
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [wheels, setWheels] = useState<VehicleWheels>("2-Wheeler");
   const [category, setCategory] = useState<VehicleCategory>("Bike");
-  const [city, setCity] = useState("Chennai");
-  const [campusZone, setCampusZone] = useState("North Campus Gate / Transit Hub");
-  const [pickupAddress, setPickupAddress] = useState("Kiosk #3, North Gate Commercial Complex");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("India");
+  const [pinCode, setPinCode] = useState("");
 
   // Step 2: Operational Pricing & Specs
   const [price, setPrice] = useState("450");
@@ -46,7 +49,8 @@ export default function AddVehicle() {
   const [guidelines, setGuidelines] = useState(
     "Campus speed limit 25 km/h strictly enforced. Helmet mandatory at all times. Return with matching fuel level."
   );
-  const [selectedImage, setSelectedImage] = useState("/vehicles/hero-splendor.png");
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [photoNames, setPhotoNames] = useState<string[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -60,7 +64,8 @@ export default function AddVehicle() {
       setHourlyPrice("65");
       setDeposit("500");
       setHelmetOption("1 Helmet Included");
-      setSelectedImage("/vehicles/hero-splendor.png");
+      setSelectedImages([]);
+      setPhotoNames([]);
     } else {
       setCategory("Hatchback");
       setSeats("5");
@@ -68,7 +73,8 @@ export default function AddVehicle() {
       setHourlyPrice("220");
       setDeposit("3000");
       setHelmetOption("Not Applicable");
-      setSelectedImage("/vehicles/honda-city.png");
+      setSelectedImages([]);
+      setPhotoNames([]);
     }
   };
 
@@ -89,6 +95,14 @@ export default function AddVehicle() {
       setError("Vehicle registration plate number (RC) is required for verification.");
       return;
     }
+    if (!addressLine1.trim() || !city.trim() || !state.trim() || !country.trim() || !pinCode.trim()) {
+      setError("Please complete Address line 1, city, state, country and PIN code.");
+      return;
+    }
+    if (selectedImages.length === 0) {
+      setError("Please upload at least one real photo of your vehicle.");
+      return;
+    }
 
     setIsSubmitting(true);
     setError("");
@@ -105,9 +119,14 @@ export default function AddVehicle() {
           year: Number(year),
           category,
           wheels,
-          city,
-          campusZone,
-          pickupAddress,
+          city: city.trim(),
+          state: state.trim(),
+          country: country.trim(),
+          pinCode: pinCode.trim(),
+          addressLine1: addressLine1.trim(),
+          addressLine2: addressLine2.trim(),
+          campusZone: "",
+          pickupAddress: [addressLine1.trim(), addressLine2.trim()].filter(Boolean).join(", "),
           price: Number(price),
           hourlyPrice: Number(hourlyPrice),
           deposit: Number(deposit),
@@ -118,7 +137,8 @@ export default function AddVehicle() {
           insuranceValidTill,
           helmetOption,
           helmetCondition,
-          image: selectedImage,
+          image: selectedImages[0],
+          additionalPhotos: selectedImages.slice(1),
           description: description.trim(),
           hostNotes: hostNotes.trim(),
           guidelines: guidelines.trim(),
@@ -268,47 +288,35 @@ export default function AddVehicle() {
                   </label>
                 </div>
 
+                <div className="eyebrow" style={{ marginTop: 10 }}>Vehicle address</div>
+                <label>
+                  Address line 1
+                  <input className="form-input" autoComplete="address-line1" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="Street address, building, or pickup location" />
+                </label>
+                <label>
+                  Address line 2 <span style={{ fontWeight: 400, color: "#74786d" }}>(optional)</span>
+                  <input className="form-input" autoComplete="address-line2" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} placeholder="Apartment, landmark, or extra directions" />
+                </label>
                 <div className="split-form">
                   <label>
                     City
-                    <select
-                      className="form-input"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                    >
-                      {["Chennai", "Bengaluru", "Kochi", "Coimbatore", "Hyderabad", "Mumbai"].map(
-                        (c) => (
-                          <option key={c}>{c}</option>
-                        )
-                      )}
-                    </select>
+                    <input className="form-input" autoComplete="address-level2" value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" />
                   </label>
-
                   <label>
-                    Campus Zone
-                    <select
-                      className="form-input"
-                      value={campusZone}
-                      onChange={(e) => setCampusZone(e.target.value)}
-                    >
-                      <option>North Campus Gate / Transit Hub</option>
-                      <option>Student Quarter / Hostel Block D</option>
-                      <option>Library Approach / Tech Park Terminal</option>
-                      <option>West Campus Promenade</option>
-                      <option>Central Administrative Ring</option>
-                    </select>
+                    State
+                    <input className="form-input" autoComplete="address-level1" value={state} onChange={(e) => setState(e.target.value)} placeholder="State" />
                   </label>
                 </div>
-
-                <label>
-                  Specific Pickup Address / Handover Bay
-                  <input
-                    className="form-input"
-                    value={pickupAddress}
-                    onChange={(e) => setPickupAddress(e.target.value)}
-                    placeholder="e.g. Kiosk #3, North Gate Commercial Complex"
-                  />
-                </label>
+                <div className="split-form">
+                  <label>
+                    Country
+                    <input className="form-input" autoComplete="country-name" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" />
+                  </label>
+                  <label>
+                    PIN code
+                    <input className="form-input" autoComplete="postal-code" inputMode="numeric" value={pinCode} onChange={(e) => setPinCode(e.target.value.replace(/[^0-9-]/g, "").slice(0, 10))} placeholder="Postal / PIN code" />
+                  </label>
+                </div>
               </>
             )}
 
@@ -480,29 +488,60 @@ export default function AddVehicle() {
                 </label>
 
                 <label>
-                  Select Photographic Cutout Asset
-                  <select
+                  Vehicle photos
+                  <span style={{ fontWeight: 400, color: "#74786d" }}>Upload up to 5 real photos. The first photo becomes the main listing image.</span>
+                  <input
                     className="form-input"
-                    value={selectedImage}
-                    onChange={(e) => setSelectedImage(e.target.value)}
-                  >
-                    {wheels === "2-Wheeler" ? (
-                      <>
-                        <option value="/vehicles/hero-splendor.png">Hero Splendor Plus (Commuter)</option>
-                        <option value="/vehicles/bajaj-pulsar.png">Bajaj Pulsar 150 (Sport Commuter)</option>
-                        <option value="/vehicles/royal-enfield.png">Royal Enfield Classic 350 (Cruiser)</option>
-                        <option value="/vehicles/ather-450x.png">Ather 450X (Electric Scooter)</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="/vehicles/tata-nano.png">Tata Nano Twist (Compact Car)</option>
-                        <option value="/vehicles/honda-city.png">Honda City i-VTEC (Sedan)</option>
-                        <option value="/vehicles/mahindra-thar.png">Mahindra Thar 4×4 (SUV)</option>
-                        <option value="/vehicles/hyundai-creta.png">Hyundai Creta SX (Mid-Size SUV)</option>
-                      </>
-                    )}
-                  </select>
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    multiple
+                    onChange={async (event) => {
+                      const files = Array.from(event.target.files || []);
+                      if (!files.length) return;
+                      if (files.length > 5) {
+                        setError("Please choose up to 5 photos.");
+                        event.target.value = "";
+                        return;
+                      }
+                      const tooLarge = files.find((file) => file.size > 5 * 1024 * 1024);
+                      if (tooLarge) {
+                        setError("Each photo must be 5 MB or smaller.");
+                        event.target.value = "";
+                        return;
+                      }
+                      try {
+                        const encoded = await Promise.all(files.map((file) => new Promise<string>((resolve, reject) => {
+                          const reader = new FileReader();
+                          reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("Could not read image"));
+                          reader.onerror = () => reject(new Error("Could not read image"));
+                          reader.readAsDataURL(file);
+                        })));
+                        setSelectedImages(encoded);
+                        setPhotoNames(files.map((file) => file.name));
+                        setError("");
+                      } catch {
+                        setError("One or more photos could not be read. Please try again.");
+                      }
+                    }}
+                  />
                 </label>
+                {selectedImages.length > 0 && (
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, fontSize: 12 }}>
+                      <strong>{selectedImages.length} photo{selectedImages.length === 1 ? "" : "s"} selected</strong>
+                      <button type="button" className="text-link" onClick={() => { setSelectedImages([]); setPhotoNames([]); }}>Remove all</button>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: 8 }}>
+                      {selectedImages.map((src, index) => (
+                        <div key={photoNames[index] + index} style={{ position: "relative", height: 84, background: "#ecefe2", border: "1px solid var(--line)" }}>
+                          <img src={src} alt={photoNames[index] || "Vehicle photo"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <button type="button" aria-label={"Remove " + (photoNames[index] || "photo")} onClick={() => { setSelectedImages((current) => current.filter((_, i) => i !== index)); setPhotoNames((current) => current.filter((_, i) => i !== index)); }} style={{ position: "absolute", top: 3, right: 3, border: 0, borderRadius: "50%", width: 22, height: 22, display: "grid", placeItems: "center", background: "#171915", color: "#fff" }}><X size={12} /></button>
+                          {index === 0 && <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: 3, background: "#171915d9", color: "#d9fa58", fontSize: 9, textAlign: "center" }}>MAIN PHOTO</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -582,17 +621,24 @@ export default function AddVehicle() {
               overflow: "hidden",
             }}
           >
-            <div style={{ height: 180, background: "#ecefe2", position: "relative" }}>
-              <img
-                src={selectedImage}
-                alt="Preview"
-                style={{ width: "100%", height: "100%", objectFit: "contain", padding: 12 }}
-              />
+            <div style={{ minHeight: 180, background: "#ecefe2", position: "relative", display: "grid", gridTemplateColumns: selectedImages.length > 1 ? "repeat(2, minmax(0, 1fr))" : "1fr", gap: 2, padding: selectedImages.length ? 4 : 0 }}>
+              {selectedImages.length ? selectedImages.map((src, index) => (
+                <div key={photoNames[index] + index} style={{ height: selectedImages.length > 1 ? 112 : 180, minWidth: 0, background: "#f7f8f1", position: "relative" }}>
+                  <img src={src} alt={photoNames[index] || "Uploaded vehicle photo"} style={{ width: "100%", height: "100%", objectFit: "contain", padding: 8 }} />
+                  {index === 0 && <span style={{ position: "absolute", bottom: 5, left: 5, background: "#171915", color: "#d9fa58", padding: "3px 5px", fontSize: 8 }}>MAIN PHOTO</span>}
+                </div>
+              )) : (
+                <div style={{ minHeight: 180, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "#74786d", padding: 18, textAlign: "center" }}>
+                  <UploadCloud size={25} />
+                  <strong style={{ fontSize: 12 }}>Your vehicle photos will appear here</strong>
+                  <span style={{ fontSize: 10 }}>Upload real photos in the listing form. No stock images.</span>
+                </div>
+              )}
             </div>
             <div style={{ padding: 18 }}>
               <div className="vehicle-meta">
                 <span>
-                  {city} · {category}
+                  {city || "City"} · {category}
                 </span>
                 <span>★ 5.00 · New</span>
               </div>
@@ -600,7 +646,7 @@ export default function AddVehicle() {
                 {make || "Make"} {name || "Model Name"}
               </h3>
               <p className="muted" style={{ fontSize: 11, margin: "0 0 10px" }}>
-                Plate: {registrationNumber || "TN 09 XX 0000"} · {transmission} · {fuel}
+                {addressLine1 || "Pickup address"}{addressLine2 ? ", " + addressLine2 : ""}{city ? ", " + city : ""}{state ? ", " + state : ""}{pinCode ? " " + pinCode : ""} · {transmission} · {fuel}
               </p>
 
               {wheels === "2-Wheeler" && (
