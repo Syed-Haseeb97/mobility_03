@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, HardHat, ShieldCheck, UploadCloud, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, HardHat, ShieldCheck, UploadCloud, X, SlidersHorizontal } from "lucide-react";
 import { type VehicleCategory, type VehicleWheels } from "@/lib/data";
 import { useSession } from "@/components/session-provider";
 
@@ -29,6 +29,11 @@ export default function AddVehicle() {
   const { currentUser } = useSession();
 
   const [step, setStep] = useState(0);
+  const [showListingOptions, setShowListingOptions] = useState(false);
+  const [showPickupAddress, setShowPickupAddress] = useState(false);
+  const [showTransmission, setShowTransmission] = useState(false);
+  const [showFuel, setShowFuel] = useState(false);
+  const [showSeats, setShowSeats] = useState(false);
 
   // Step 1: Core Details
   const [make, setMake] = useState("");
@@ -44,17 +49,15 @@ export default function AddVehicle() {
   const [pinCode, setPinCode] = useState("");
 
   // Step 2: Operational Pricing & Specs
-  const [price, setPrice] = useState("450");
-  const [hourlyPrice, setHourlyPrice] = useState("65");
-  const [deposit, setDeposit] = useState("500");
+  const [price, setPrice] = useState("");
+  const [hourlyPrice, setHourlyPrice] = useState("");
+  const [deposit, setDeposit] = useState("");
   const [seats, setSeats] = useState("2");
   const [transmission, setTransmission] = useState<"Automatic" | "Manual">("Manual");
   const [fuel, setFuel] = useState("Petrol");
   const [registrationNumber, setRegistrationNumber] = useState("TN 09 BX 4412");
   const [insuranceValidTill] = useState("2027-04-30");
-  const [helmetOption, setHelmetOption] = useState<
-    "1 Helmet Included" | "2 Helmets Included" | "Available on Request (₹50)" | "Not Applicable"
-  >("1 Helmet Included");
+  const [helmetIncluded, setHelmetIncluded] = useState(false);
   const [helmetCondition, setHelmetCondition] = useState("ISI certified helmet with clean sanitized liner");
 
   // Step 3: Owner's Custom Written Content ("posted by the guy who posts on rent")
@@ -78,19 +81,13 @@ export default function AddVehicle() {
     if (w === "2-Wheeler") {
       setCategory("Bike");
       setSeats("2");
-      setPrice("450");
-      setHourlyPrice("65");
-      setDeposit("500");
-      setHelmetOption("1 Helmet Included");
+      setHelmetIncluded(false);
       setSelectedImages([]);
       setPhotoNames([]);
     } else {
       setCategory("Hatchback");
       setSeats("5");
-      setPrice("1800");
-      setHourlyPrice("220");
-      setDeposit("3000");
-      setHelmetOption("Not Applicable");
+      setHelmetIncluded(false);
       setSelectedImages([]);
       setPhotoNames([]);
     }
@@ -101,7 +98,7 @@ export default function AddVehicle() {
       setError("Please specify both the vehicle make and model name.");
       return;
     }
-    if (Number(price) < 200 || !Number.isFinite(Number(price))) {
+    if (!price.trim() || Number(price) < 200 || !Number.isFinite(Number(price))) {
       setError("Daily rental rate must be at least ₹200.");
       return;
     }
@@ -146,14 +143,19 @@ export default function AddVehicle() {
           campusZone: "",
           pickupAddress: [addressLine1.trim(), addressLine2.trim()].filter(Boolean).join(", "),
           price: Number(price),
-          hourlyPrice: Number(hourlyPrice),
-          deposit: Number(deposit),
+          hourlyPrice: hourlyPrice ? Number(hourlyPrice) : undefined,
+          deposit: deposit ? Number(deposit) : undefined,
           seats: Number(seats),
           transmission,
           fuel,
           registrationNumber: registrationNumber.trim().toUpperCase(),
           insuranceValidTill,
-          helmetOption,
+          helmetOption: helmetIncluded ? "1 Helmet Included" : "",
+          helmetIncluded,
+          showPickupAddress,
+          showTransmission,
+          showFuel,
+          showSeats,
           helmetCondition,
           image: selectedImages[0],
           additionalPhotos: selectedImages.slice(1),
@@ -364,6 +366,10 @@ export default function AddVehicle() {
                   </label>
                 </div>
 
+                <button type="button" onClick={() => setShowListingOptions(true)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: 12, border: "1px solid var(--line)", background: "#f8f9f3", textAlign: "left", cursor: "pointer", fontWeight: 700 }}>
+                  <SlidersHorizontal size={16} /> Choose which details appear on your listing <span style={{ marginLeft: "auto", fontSize: 11, color: "#74786d" }}>Optional</span>
+                </button>
+
                 <div className="split-form">
                   <label>
                     Refundable Security Deposit (₹)
@@ -429,17 +435,9 @@ export default function AddVehicle() {
                   </label>
 
                   {wheels === "2-Wheeler" ? (
-                    <label>
-                      Helmet Provision
-                      <select
-                        className="form-input"
-                        value={helmetOption}
-                        onChange={(e) => setHelmetOption(e.target.value as any)}
-                      >
-                        <option>1 Helmet Included</option>
-                        <option>2 Helmets Included</option>
-                        <option>Available on Request (₹50)</option>
-                      </select>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, padding: 12, border: "1px solid var(--line)" }}>
+                      <input type="checkbox" checked={helmetIncluded} onChange={(e) => setHelmetIncluded(e.target.checked)} />
+                      <span>Helmet included</span>
                     </label>
                   ) : (
                     <label>
@@ -559,6 +557,24 @@ export default function AddVehicle() {
             )}
           </div>
 
+          {showListingOptions && (
+            <div role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowListingOptions(false); }} style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(10,12,8,.58)", display: "grid", placeItems: "center", padding: 18 }}>
+              <section role="dialog" aria-modal="true" aria-labelledby="listing-options-title" style={{ width: "min(100%, 460px)", background: "#fff", border: "1px solid var(--line)", padding: 24, boxShadow: "0 24px 80px #0004" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 16 }}>
+                  <div><div className="eyebrow">Listing preferences</div><h3 id="listing-options-title" style={{ margin: "8px 0 4px", fontSize: 22 }}>What should renters see?</h3><p className="muted" style={{ fontSize: 12, margin: 0 }}>Tick only the details you want shown publicly.</p></div>
+                  <button type="button" aria-label="Close listing preferences" onClick={() => setShowListingOptions(false)} style={{ border: 0, background: "transparent", cursor: "pointer" }}><X size={20} /></button>
+                </div>
+                <div style={{ display: "grid", gap: 14, margin: "22px 0" }}>
+                  <label style={{ display: "flex", gap: 10, alignItems: "start", cursor: "pointer" }}><input type="checkbox" checked={showPickupAddress} onChange={(e) => setShowPickupAddress(e.target.checked)} style={{ marginTop: 3 }} /><span><strong>Pickup address</strong><span className="muted" style={{ display: "block", fontSize: 11, marginTop: 3 }}>Show the pickup location details</span></span></label>
+                  <label style={{ display: "flex", gap: 10, alignItems: "start", cursor: "pointer" }}><input type="checkbox" checked={showTransmission} onChange={(e) => setShowTransmission(e.target.checked)} style={{ marginTop: 3 }} /><span><strong>Transmission</strong><span className="muted" style={{ display: "block", fontSize: 11, marginTop: 3 }}>Show Manual or Automatic</span></span></label>
+                  <label style={{ display: "flex", gap: 10, alignItems: "start", cursor: "pointer" }}><input type="checkbox" checked={showFuel} onChange={(e) => setShowFuel(e.target.checked)} style={{ marginTop: 3 }} /><span><strong>Fuel / powertrain</strong><span className="muted" style={{ display: "block", fontSize: 11, marginTop: 3 }}>Show Petrol, Diesel, Electric, etc.</span></span></label>
+                  <label style={{ display: "flex", gap: 10, alignItems: "start", cursor: "pointer" }}><input type="checkbox" checked={showSeats} onChange={(e) => setShowSeats(e.target.checked)} style={{ marginTop: 3 }} /><span><strong>Number of seats</strong><span className="muted" style={{ display: "block", fontSize: 11, marginTop: 3 }}>Show passenger capacity</span></span></label>
+                </div>
+                <button type="button" className="button-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setShowListingOptions(false)}>Save preferences <Check size={15} /></button>
+              </section>
+            </div>
+          )}
+
           {error && (
             <div className="toast" style={{ background: "#7f1d1d" }} role="alert">
               {error}
@@ -599,7 +615,7 @@ export default function AddVehicle() {
                     setError("Please enter the vehicle make and model.");
                     return;
                   }
-                  if (step === 1 && (!price || Number(price) < 200)) {
+                  if (step === 1 && (!price.trim() || Number(price) < 200)) {
                     setError("Daily rate must be at least ₹200.");
                     return;
                   }
@@ -650,22 +666,19 @@ export default function AddVehicle() {
             </div>
             <div style={{ padding: 18 }}>
               <div className="vehicle-meta">
-                <span>
-                  {city || "City"} · {category}
-                </span>
-                <span>★ 5.00 · New</span>
+                <span>{city || "City"} · {category}</span>
+                <span style={{ color: "#546e14", fontWeight: 700 }}>New</span>
               </div>
               <h3 style={{ margin: "10px 0 6px" }}>
                 {make || "Make"} {name || "Model Name"}
               </h3>
               <p className="muted" style={{ fontSize: 11, margin: "0 0 10px" }}>
-                {addressLine1 || "Pickup address"}{addressLine2 ? ", " + addressLine2 : ""}{city ? ", " + city : ""}{state ? ", " + state : ""}{pinCode ? " " + pinCode : ""} · {transmission} · {fuel}
+                {[showPickupAddress ? [addressLine1, addressLine2, city, state, pinCode].filter(Boolean).join(", ") : "", showTransmission ? transmission : "", showFuel ? fuel : "", showSeats ? seats + " seats" : ""].filter(Boolean).join(" · ") || "Choose which details to show to renters."}
               </p>
 
-              {wheels === "2-Wheeler" && (
+              {wheels === "2-Wheeler" && helmetIncluded && (
                 <div style={{ fontSize: 11, color: "#546e14", fontWeight: 600, marginBottom: 8 }}>
-                  <HardHat size={12} style={{ display: "inline", marginRight: 4 }} />
-                  {helmetOption}
+                  <HardHat size={12} style={{ display: "inline", marginRight: 4 }} /> Helmet included
                 </div>
               )}
 
@@ -690,7 +703,7 @@ export default function AddVehicle() {
               )}
 
               <div className="price">
-                ₹{Number(price || 0).toLocaleString("en-IN")} <small>/ day</small>
+                {price.trim() ? <>₹{Number(price).toLocaleString("en-IN")} <small>/ day</small></> : <span className="muted" style={{ fontSize: 12, fontWeight: 500 }}>Add your daily rate in Step 2</span>}
               </div>
             </div>
           </div>
