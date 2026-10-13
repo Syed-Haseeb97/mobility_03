@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 
 export default function HostIntro() {
+  const isProduction = process.env.NODE_ENV === "production";
+
   return (
     <main>
       <section className="hero" style={{ minHeight: 460, paddingTop: 85, paddingBottom: 80 }}>
@@ -23,9 +25,11 @@ export default function HostIntro() {
               Your <em>terms.</em>
             </h1>
             <p className="hero-copy">
-              List your bike or car for local renters and campus communities. Set a daily rate, share accurate pickup details, and keep your listing up to date. This prototype demonstrates the partner workflow; payouts are not connected to a real payment provider.
+              {isProduction
+                ? "Partner onboarding is in preview. We are not accepting listings until secure partner accounts, persistent listing storage, document review, and payment infrastructure are ready."
+                : "List your bike or car for local renters and campus communities. Set a daily rate, share accurate pickup details, and keep your listing up to date. This prototype demonstrates the partner workflow; payouts are not connected to a real payment provider."}
             </p>
-            {process.env.NODE_ENV !== "production" ? (
+            {!isProduction && (
               <div className="hero-actions">
                 <Link className="button-primary" href="/host/add-vehicle">
                   List Your Vehicle <ArrowUpRight size={16} />
@@ -34,8 +38,6 @@ export default function HostIntro() {
                   Partner Dashboard <ArrowUpRight size={15} />
                 </Link>
               </div>
-            ) : (
-              <p className="hero-copy">Partner onboarding is in preview. Live listings open once secure accounts, document review and payment infrastructure are ready.</p>
             )}
           </div>
 
@@ -141,15 +143,22 @@ export default function HostIntro() {
           }}
         >
           <div>
-            <div style={{ fontWeight: 700, fontSize: 13 }}>Standard Campus Platform Terms</div>
+            <div style={{ fontWeight: 700, fontSize: 13 }}>
+              {isProduction ? "Partner onboarding preview" : "Standard Campus Platform Terms"}
+            </div>
             <p className="muted" style={{ margin: "4px 0 0" }}>
-              Mobility operates with a transparent 10% platform commission on completed trips, covering
-              support and incident-response processes, documented safety checks, and applicable regulatory compliance.
+              {isProduction
+                ? "Listing submissions are not open yet. Partner accounts, persistent listing storage, document review, and payment infrastructure must be ready before vehicles can be published."
+                : "Mobility operates with a transparent 10% platform commission on completed trips, covering support and incident-response processes, documented safety checks, and applicable regulatory compliance."}
             </p>
           </div>
-          <Link className="button-primary" href="/host/add-vehicle">
-            Get Started <ArrowUpRight size={14} />
-          </Link>
+          {isProduction ? (
+            <span className="pill">Coming soon</span>
+          ) : (
+            <Link className="button-primary" href="/host/add-vehicle">
+              Get Started <ArrowUpRight size={14} />
+            </Link>
+          )}
         </div>
       </section>
     </main>

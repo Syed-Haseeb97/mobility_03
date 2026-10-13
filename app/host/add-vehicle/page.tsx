@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, HardHat, ShieldCheck, UploadCloud, X, SlidersHorizontal } from "lucide-react";
 import { type VehicleCategory, type VehicleWheels } from "@/lib/data";
 import { useSession } from "@/components/session-provider";
@@ -177,6 +178,38 @@ export default function AddVehicle() {
       setError("Network error while submitting listing.");
       setIsSubmitting(false);
     }
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return (
+      <main className="page-shell">
+        <div className="page-top">
+          <div>
+            <div className="eyebrow">Host Studio / Preview</div>
+            <h1 className="page-heading">
+              Partner onboarding
+              <br />
+              is in preview.
+            </h1>
+            <p className="page-intro">
+              We are not accepting vehicle listings yet. Onboarding will open once secure partner
+              accounts, persistent listing storage, and document review are ready.
+            </p>
+            <div className="hero-actions">
+              <Link className="button-dark button-primary" href="/list-your-vehicle">
+                <ArrowLeft size={15} /> Partner information
+              </Link>
+              <Link className="button-primary" href="/rent">
+                Browse marketplace <ArrowRight size={15} />
+              </Link>
+            </div>
+          </div>
+        </div>
+        <div className="notice" role="status">
+          No listing details or photos have been collected or saved.
+        </div>
+      </main>
+    );
   }
 
   return (
