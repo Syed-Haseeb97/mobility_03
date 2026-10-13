@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, VehicleListingStatus } from "@/lib/server/db";
+import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
+import { getIndiaDateString, isDateOnly } from "@/lib/date-utils";
 
 export async function GET(request: Request) {
   try {
@@ -7,14 +9,26 @@ export async function GET(request: Request) {
     const city = searchParams.get("city") || undefined;
     const category = searchParams.get("category") || undefined;
     const wheels = searchParams.get("wheels") || undefined;
-    const ownerId = searchParams.get("ownerId") || undefined;
-    const statusParam = searchParams.get("status") as VehicleListingStatus | undefined;
+    const isProduction = process.env.NODE_ENV === "production";
+    const ownerId = isProduction ? undefined : searchParams.get("ownerId") || undefined;
+    const statusParam = isProduction ? undefined : searchParams.get("status") as VehicleListingStatus | undefined;
     const search = searchParams.get("search") || undefined;
+    const start = searchParams.get("start") || undefined;
+    const end = searchParams.get("end") || undefined;
+
+    if (start || end) {
+      if (!start || !end || !isDateOnly(start) || !isDateOnly(end) || start < getIndiaDateString() || end <= start) {
+        return NextResponse.json(
+          { error: "Choose valid pickup and return dates, with return after pickup." },
+          { status: 400 }
+        );
+      }
+    }
 
     // For public browse, default to 'approved'. If ownerId or admin specified, allow viewing other statuses
     const status = statusParam || (ownerId ? undefined : "approved");
 
-    const vehicles = db.getVehicles({
+    let vehicles = db.getVehicles({
       city,
       category,
       wheels,
@@ -23,6 +37,10 @@ export async function GET(request: Request) {
       search,
     });
 
+    if (start && end) {
+      vehicles = vehicles.filter((vehicle) => db.checkAvailability(vehicle.id, start, end));
+    }
+
     return NextResponse.json({ vehicles, count: vehicles.length });
   } catch (err) {
     return NextResponse.json({ error: "Failed to fetch vehicles" }, { status: 500 });
@@ -30,6 +48,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const blocked = blockUnconfiguredProductionAccess("Vehicle listing creation");
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
 
@@ -94,8 +115,8 @@ export async function POST(request: Request) {
       fuel: fuel || "Petrol",
       registrationNumber: registrationNumber || "TN 09 XX " + Math.floor(1000 + Math.random() * 9000),
       insuranceValidTill: insuranceValidTill || "2027-12-31",
-      rcVerified: true,
-      insuranceVerified: true,
+      rcVerified: false,
+      insuranceVerified: false,
       helmetOption: helmetOption || "1 Helmet Included",
       helmetCondition: helmetCondition || "Certified sanitized helmet provided",
       rating: 5.0,
@@ -104,7 +125,7 @@ export async function POST(request: Request) {
       description: description.trim(),
       hostNotes: hostNotes || "Handover against valid driving license.",
       guidelines: guidelines || "Follow designated campus speed limits and wear protective helmet.",
-      status: "approved", // Automatically approve for seamless production workflow demo
+      status: "pending_review", // New listings must be reviewed before public booking
     });
 
     return NextResponse.json({ vehicle: newVehicle, success: true }, { status: 201 });

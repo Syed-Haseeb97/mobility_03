@@ -24,8 +24,7 @@ export default function GuidelinesPage() {
             clear ground rules.
           </h1>
           <p className="page-intro" style={{ marginTop: 14 }}>
-            Mobility connects students and campus personnel with verified two-wheelers and passenger
-            vehicles. Operational clarity, roadworthiness, and helmet compliance protect everyone on the road.
+            Mobility is designed to help students and campus communities compare local vehicle listings. Always inspect the vehicle, confirm the documents and agree on the rental terms before a trip.
           </p>
         </div>
 
@@ -52,7 +51,7 @@ export default function GuidelinesPage() {
             {
               n: "01",
               title: "Agree on the complete price upfront",
-              body: "Confirm hourly vs. daily calculation, what constitutes a return grace period, security deposit handling, and roadside assistance inclusions before key exchange.",
+              body: "Confirm the daily rate, return grace period, deposit handling and any roadside-assistance terms before key exchange.",
             },
             {
               n: "02",
@@ -126,7 +125,7 @@ export default function GuidelinesPage() {
             <h2 style={{ fontSize: 28 }}>Make a listing worth trusting.</h2>
             <p className="section-sub">
               Quality listings build a reliable campus mobility marketplace. Transparency prevents
-              disputes and guarantees fast platform settlements.
+              disputes. Settlement timing and payment status should always be communicated honestly.
             </p>
           </div>
           <Link className="text-link" href="/host/add-vehicle">
@@ -144,7 +143,7 @@ export default function GuidelinesPage() {
             {
               n: "02",
               title: "Complete Decision Details",
-              body: "State exact model year, fuel or EV powertrain, hourly flex rate, daily rate, helmet inclusions, and refundable deposit requirements clearly.",
+              body: "State the model year, fuel or EV type, supported rental period, daily rate, helmet arrangements and any deposit clearly. The current booking flow supports date-based daily rentals.",
             },
             {
               n: "03",
@@ -197,9 +196,7 @@ export default function GuidelinesPage() {
           A badge should follow evidence — not a promise.
         </h2>
         <p style={{ maxWidth: 650, color: "#cbd0c2", lineHeight: 1.8, fontSize: 14 }}>
-          Every vehicle displayed in the Mobility directory is cross-checked against authoritative
-          records prior to public bookability. The platform validates provider identity, vehicle RC,
-          and insurance validity periods, with regular audit checks.
+          This prototype stores document-review flags but does not connect to authoritative government or insurer systems. A badge is not independent proof of validity. Before public launch, add a documented review process, validate provider identity and vehicle documents, and record insurance expiry checks.
         </p>
 
         <div
@@ -218,9 +215,9 @@ export default function GuidelinesPage() {
             }}
           >
             <FileCheck2 size={24} className="text-[#c8ff3a]" style={{ marginBottom: 10 }} />
-            <div style={{ fontWeight: 700, fontSize: 14 }}>RC Plate Verification</div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>RC document review</div>
             <p style={{ color: "#a5aba0", fontSize: 12, lineHeight: 1.7, margin: "6px 0 0" }}>
-              Chassis number and license plate verified against Ministry of Road Transport records.
+              Before listing approval, compare the registration certificate with the vehicle and use an authorized verification process where available.
             </p>
           </div>
 
@@ -232,9 +229,9 @@ export default function GuidelinesPage() {
             }}
           >
             <ShieldCheck size={24} className="text-[#c8ff3a]" style={{ marginBottom: 10 }} />
-            <div style={{ fontWeight: 700, fontSize: 14 }}>Active Commercial Insurance</div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>Insurance evidence & expiry</div>
             <p style={{ color: "#a5aba0", fontSize: 12, lineHeight: 1.7, margin: "6px 0 0" }}>
-              Comprehensive insurance cover with third-party liability and roadside assistance coverage.
+              Check the policyholder, coverage, use restrictions and expiry with the insurer; do not assume every listing includes commercial cover or roadside assistance.
             </p>
           </div>
 
@@ -246,9 +243,9 @@ export default function GuidelinesPage() {
             }}
           >
             <HardHat size={24} className="text-[#c8ff3a]" style={{ marginBottom: 10 }} />
-            <div style={{ fontWeight: 700, fontSize: 14 }}>Certified Helmet Compliance</div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>Helmet handover check</div>
             <p style={{ color: "#a5aba0", fontSize: 12, lineHeight: 1.7, margin: "6px 0 0" }}>
-              ISI certified helmets inspected for clean liner condition and unbroken chin strap buckles.
+              Inspect the actual helmet for certification markings, fit, damage, clean lining and a working strap before riding.
             </p>
           </div>
         </div>

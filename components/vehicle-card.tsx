@@ -21,7 +21,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           <span className="vehicle-tag">
             {vehicle.wheels || (is2Wheeler ? "2-Wheeler" : "4-Wheeler")} · {vehicle.category}
           </span>
-          {vehicle.rcVerified && (
+          {vehicle.rcVerified && vehicle.insuranceVerified && (
             <span
               style={{
                 position: "absolute",
@@ -81,9 +81,6 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 
         <div style={{ fontSize: 11, color: "#74786d", marginTop: 10, display: "flex", justifyContent: "space-between" }}>
           <span>Host: {vehicle.host.split("(")[0].trim()}</span>
-          {vehicle.hourlyPrice && (
-            <span style={{ fontFamily: "var(--mono)", color: "#5b663b" }}>₹{vehicle.hourlyPrice}/hr</span>
-          )}
         </div>
 
         <div className="vehicle-bottom">

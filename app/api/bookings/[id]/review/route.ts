@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
+import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const blocked = blockUnconfiguredProductionAccess("Booking reviews");
+  if (blocked) return blocked;
+
   try {
     const { id } = await params;
     const body = await request.json();

@@ -20,6 +20,7 @@ export function SiteHeader() {
   const { currentUser, allUsers, switchUser } = useSession();
 
   const currentRole = currentUser?.role || "customer";
+  const isDemoEnvironment = process.env.NODE_ENV !== "production";
 
   return (
     <header className="site-header">
@@ -50,17 +51,16 @@ export function SiteHeader() {
         <Link href="/guidelines" onClick={() => setOpen(false)}>
           Guidelines &amp; Safety
         </Link>
-        <Link href="/rent/bookings" onClick={() => setOpen(false)}>
-          My Trips
-        </Link>
-        <Link href="/host/dashboard" onClick={() => setOpen(false)}>
-          Host Studio
-        </Link>
-        <Link href="/admin" onClick={() => setOpen(false)}>
-          Admin Desk
-        </Link>
+        {isDemoEnvironment && (
+          <>
+            <Link href="/rent/bookings" onClick={() => setOpen(false)}>My Trips</Link>
+            <Link href="/host/dashboard" onClick={() => setOpen(false)}>Host Studio</Link>
+            <Link href="/admin" onClick={() => setOpen(false)}>Admin Desk</Link>
+          </>
+        )}
 
-        {/* ROLE SELECTOR DROPDOWN */}
+        {/* Demo-only persona switching; never present it as production authentication. */}
+        {isDemoEnvironment && (
         <div style={{ position: "relative" }}>
           <button
             type="button"
@@ -186,6 +186,7 @@ export function SiteHeader() {
             </div>
           )}
         </div>
+        )}
 
         <Link
           className="nav-cta"

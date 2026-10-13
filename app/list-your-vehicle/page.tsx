@@ -23,18 +23,20 @@ export default function HostIntro() {
               Your <em>terms.</em>
             </h1>
             <p className="hero-copy">
-              Connect your two-wheeler or passenger car with verified campus students and institutional
-              members. Set your daily and hourly rates, manage your handover calendar, and receive prompt
-              settlement disbursements.
+              List your bike or car for local renters and campus communities. Set a daily rate, share accurate pickup details, and keep your listing up to date. This prototype demonstrates the partner workflow; payouts are not connected to a real payment provider.
             </p>
-            <div className="hero-actions">
-              <Link className="button-primary" href="/host/add-vehicle">
-                List Your Vehicle <ArrowUpRight size={16} />
-              </Link>
-              <Link className="text-link" href="/host/dashboard" style={{ color: "#c8ff3a" }}>
-                Partner Dashboard <ArrowUpRight size={15} />
-              </Link>
-            </div>
+            {process.env.NODE_ENV !== "production" ? (
+              <div className="hero-actions">
+                <Link className="button-primary" href="/host/add-vehicle">
+                  List Your Vehicle <ArrowUpRight size={16} />
+                </Link>
+                <Link className="text-link" href="/host/dashboard" style={{ color: "#c8ff3a" }}>
+                  Partner Dashboard <ArrowUpRight size={15} />
+                </Link>
+              </div>
+            ) : (
+              <p className="hero-copy">Partner onboarding is in preview. Live listings open once secure accounts, document review and payment infrastructure are ready.</p>
+            )}
           </div>
 
           <div className="hero-visual">
@@ -55,7 +57,7 @@ export default function HostIntro() {
                 Built around your operational workflow.
               </h2>
               {[
-                "Authoritative Pricing & Deposit Rules",
+                "Clear Pricing & Deposit Rules",
                 "Digital Key Handover & Return Logging",
                 "Automated UPI / IMPS Disbursal Settlements",
               ].map((x, i) => (
@@ -93,7 +95,7 @@ export default function HostIntro() {
             <h2>
               Good partnerships
               <br />
-              start with verified standards.
+              start with clear listing standards.
             </h2>
           </div>
           <ShieldCheck size={42} strokeWidth={1.5} className="text-[#68811e]" />
@@ -142,7 +144,7 @@ export default function HostIntro() {
             <div style={{ fontWeight: 700, fontSize: 13 }}>Standard Campus Platform Terms</div>
             <p className="muted" style={{ margin: "4px 0 0" }}>
               Mobility operates with a transparent 10% platform commission on completed trips, covering
-              roadside assistance dispatch, 24/7 security monitoring, and regulatory compliance checks.
+              support and incident-response processes, documented safety checks, and applicable regulatory compliance.
             </p>
           </div>
           <Link className="button-primary" href="/host/add-vehicle">

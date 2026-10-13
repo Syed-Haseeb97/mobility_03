@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { db, BookingStatus } from "@/lib/server/db";
+import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const blocked = blockUnconfiguredProductionAccess("Booking records");
+  if (blocked) return blocked;
+
   const { id } = await params;
   const booking = db.getBookingById(id);
 
@@ -19,6 +23,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const blocked = blockUnconfiguredProductionAccess("Booking changes, cancellations and handovers");
+  if (blocked) return blocked;
+
   try {
     const { id } = await params;
     const body = await request.json();

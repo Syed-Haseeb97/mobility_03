@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { money, daysBetween, type Vehicle } from "@/lib/data";
 import { useSession } from "@/components/session-provider";
+import { getIndiaDateString, nextDateString } from "@/lib/date-utils";
 
 export default function VehicleDetail() {
   const params = useParams<{ id: string }>();
@@ -192,9 +193,7 @@ export default function VehicleDetail() {
 
       setBookingNotice({
         type: "success",
-        message: `Booking Confirmed! Reference: ${data.booking.id}. Payment of ${money(
-          data.booking.total
-        )} processed securely via ${paymentMethod}.`,
+        message: `Demo booking created. Reference: ${data.booking.id}. No real payment was processed; the displayed total is for demonstration only.`,
         bookingId: data.booking.id,
       });
 
@@ -251,7 +250,7 @@ export default function VehicleDetail() {
             {vehicle.name}
           </h1>
           <p className="page-intro" style={{ marginTop: 8 }}>
-            ★ {vehicle.rating.toFixed(2)} · {vehicle.trips} verified trips · Hosted by{" "}
+            ★ {vehicle.rating.toFixed(2)} · {vehicle.trips} trips · Hosted by{" "}
             <strong>{vehicle.host}</strong>
           </p>
         </div>
@@ -260,18 +259,7 @@ export default function VehicleDetail() {
           <div className="price">
             {money(vehicle.price)} <small>/ day</small>
           </div>
-          {vehicle.hourlyPrice && (
-            <div
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: 12,
-                color: "#6b7d2f",
-                marginTop: 4,
-              }}
-            >
-              Hourly Flex: ₹{vehicle.hourlyPrice} / hr
-            </div>
-          )}
+
         </div>
       </div>
 
@@ -488,7 +476,7 @@ export default function VehicleDetail() {
           <div className="eyebrow">Reservation Desk</div>
           <h2>Configure Rental</h2>
           <p className="muted">
-            Instant booking with server-side concurrency check and verifiable receipt.
+            Review your dates, pickup details and itemized estimate before continuing. This prototype does not collect real payment.
           </p>
 
           <form onSubmit={handleBook}>
@@ -498,11 +486,11 @@ export default function VehicleDetail() {
                 <input
                   type="date"
                   required
-                  min={new Date().toISOString().slice(0, 10)}
+                  min={getIndiaDateString()}
                   value={start}
                   onChange={(e) => {
                     setStart(e.target.value);
-                    if (end && e.target.value > end) setEnd("");
+                    if (end && e.target.value >= end) setEnd("");
                   }}
                 />
               </label>
@@ -512,7 +500,7 @@ export default function VehicleDetail() {
                 <input
                   type="date"
                   required
-                  min={start || new Date().toISOString().slice(0, 10)}
+                  min={start ? nextDateString(start) : getIndiaDateString()}
                   value={end}
                   onChange={(e) => setEnd(e.target.value)}
                 />
@@ -575,7 +563,7 @@ export default function VehicleDetail() {
               )}
 
               <label>
-                Payment Method
+                Demo payment option (not processed)
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value as any)}

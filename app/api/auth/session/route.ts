@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
+import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
 
 // Default active session in cookies or header, or fallback to customer
 export async function GET(request: Request) {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ user: null, availableUsers: [] });
+  }
+
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId") || "usr-cust-1";
   const user = db.getUserById(userId) || db.getUserById("usr-cust-1");
@@ -15,6 +20,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const blocked = blockUnconfiguredProductionAccess("Demo session changes");
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
     const { action, userId, updates } = body;
