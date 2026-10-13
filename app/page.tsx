@@ -44,7 +44,14 @@ export default function Home() {
             </p>
             <div className="hero-ctas">
               <Link className="landing-primary-cta" href="/rent">Find your ride <ArrowUpRight size={17} /></Link>
-              <Link className="landing-text-cta" href="/list-your-vehicle">Have a vehicle? <span>Earn with it</span> <ArrowRight size={15} /></Link>
+              <Link className="landing-text-cta" href="/list-your-vehicle">
+                {isDemoEnvironment ? (
+                  <>Have a vehicle? <span>Earn with it</span></>
+                ) : (
+                  <>Have a vehicle? <span>Preview onboarding</span></>
+                )}
+                <ArrowRight size={15} />
+              </Link>
             </div>
             <div className="hero-proof-row">
               <div className="proof-avatars" aria-hidden="true"><span>R</span><span>K</span><span>A</span></div>
