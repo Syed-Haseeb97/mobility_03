@@ -31,6 +31,11 @@ export type Vehicle = {
   country?: string;
   pinCode?: string;
   additionalPhotos?: string[];
+  showPickupAddress?: boolean;
+  showTransmission?: boolean;
+  showFuel?: boolean;
+  showSeats?: boolean;
+  helmetIncluded?: boolean;
   price: number; // daily rate
   hourlyPrice?: number;
   deposit?: number;
