@@ -63,7 +63,6 @@ export async function POST(request: Request) {
       category,
       wheels,
       city,
-      campusZone,
       pickupAddress,
       addressLine1,
       addressLine2,
