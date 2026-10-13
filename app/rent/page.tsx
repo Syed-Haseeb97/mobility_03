@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, ShieldCheck, HardHat, RefreshCw } from "lucide-react";
 import { seedVehicles, type Vehicle, type VehicleCategory } from "@/lib/data";
 import { VehicleCard } from "@/components/vehicle-card";
+import { DemoVehicleShowcase } from "@/components/demo-vehicle-showcase";
 
 function RentContent() {
   const searchParams = useSearchParams();
@@ -13,8 +14,11 @@ function RentContent() {
   const initialStart = searchParams.get("start") || "";
   const initialEnd = searchParams.get("end") || "";
 
-  const [inventory, setInventory] = useState<Vehicle[]>(seedVehicles);
+  const [inventory, setInventory] = useState<Vehicle[]>(
+    process.env.NODE_ENV === "production" ? [] : seedVehicles
+  );
   const [loading, setLoading] = useState(true);
+  const [inventoryError, setInventoryError] = useState(false);
 
   const [query, setQuery] = useState("");
   const [city, setCity] = useState(initialCity === "" ? "All locations" : initialCity);
@@ -25,58 +29,61 @@ function RentContent() {
 
   const fetchVehicles = async () => {
     setLoading(true);
+    setInventoryError(false);
     try {
       const params = new URLSearchParams();
       if (initialStart) params.set("start", initialStart);
       if (initialEnd) params.set("end", initialEnd);
       const queryString = params.toString();
       const res = await fetch(queryString ? `/api/vehicles?${queryString}` : "/api/vehicles");
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.vehicles)) {
-          // Format into Vehicle shape. An empty API result is real: do not replace it with seed inventory.
-          const formatted: Vehicle[] = data.vehicles.map((v: any) => ({
-            id: v.id,
-            name: v.name,
-            make: v.make,
-            category: v.category,
-            wheels: v.wheels,
-            city: v.city,
-            campusZone: v.campusZone,
-            pickupAddress: v.pickupAddress,
-            price: v.price,
-            hourlyPrice: v.hourlyPrice,
-            deposit: v.deposit,
-            seats: v.seats,
-            transmission: v.transmission,
-            fuel: v.fuel,
-            year: v.year,
-            rating: v.rating || 5,
-            trips: v.trips || 0,
-            image: v.image,
-            description: v.description,
-            host: v.ownerName || "Vehicle host",
-            ownerId: v.ownerId,
-            registrationNumber: v.registrationNumber,
-            insuranceValidTill: v.insuranceValidTill,
-            rcVerified: v.rcVerified ?? false,
-            insuranceVerified: v.insuranceVerified ?? false,
-            helmetOption: v.helmetOption,
-            helmetCondition: v.helmetCondition,
-            guidelines: v.guidelines,
-            hostNotes: v.hostNotes,
-            status: v.status,
-          }));
-          setInventory(formatted);
-          return;
-        }
+      if (!res.ok) throw new Error(`Vehicle inventory request failed (${res.status})`);
+
+      const data = await res.json();
+      if (!Array.isArray(data.vehicles)) {
+        throw new Error("Vehicle inventory response did not include a vehicles array");
       }
+
+      // An empty API result is real: do not replace it with seed inventory.
+      const formatted: Vehicle[] = data.vehicles.map((v: any) => ({
+        id: v.id,
+        name: v.name,
+        make: v.make,
+        category: v.category,
+        wheels: v.wheels,
+        city: v.city,
+        campusZone: v.campusZone,
+        pickupAddress: v.pickupAddress,
+        price: v.price,
+        hourlyPrice: v.hourlyPrice,
+        deposit: v.deposit,
+        seats: v.seats,
+        transmission: v.transmission,
+        fuel: v.fuel,
+        year: v.year,
+        rating: v.rating || 5,
+        trips: v.trips || 0,
+        image: v.image,
+        description: v.description,
+        host: v.ownerName || "Vehicle host",
+        ownerId: v.ownerId,
+        registrationNumber: v.registrationNumber,
+        insuranceValidTill: v.insuranceValidTill,
+        rcVerified: v.rcVerified ?? false,
+        insuranceVerified: v.insuranceVerified ?? false,
+        helmetOption: v.helmetOption,
+        helmetCondition: v.helmetCondition,
+        guidelines: v.guidelines,
+        hostNotes: v.hostNotes,
+        status: v.status,
+      }));
+      setInventory(formatted);
     } catch (err) {
-      console.warn("Using fallback seed vehicles", err);
+      console.warn("Unable to load vehicle inventory", err);
+      setInventoryError(true);
+      setInventory(process.env.NODE_ENV === "production" ? [] : seedVehicles);
     } finally {
       setLoading(false);
     }
-    setInventory(process.env.NODE_ENV === "production" ? [] : seedVehicles);
   };
 
   useEffect(() => {
@@ -244,11 +251,25 @@ function RentContent() {
           <h3>Finding your next ride…</h3>
           <p className="muted">Checking the current marketplace inventory.</p>
         </div>
+      ) : inventoryError && inventory.length === 0 ? (
+        <div className="empty-state" role="alert">
+          <h3>We couldn’t load the live marketplace.</h3>
+          <p className="muted">
+            Please try refreshing. Example vehicles are hidden until we can confirm there are no live listings.
+          </p>
+        </div>
       ) : list.length ? (
         <div className="vehicle-grid">
           {list.map((v) => (
             <VehicleCard key={v.id} vehicle={v} />
           ))}
+        </div>
+      ) : inventory.length === 0 ? (
+        <div className="empty-state">
+          <h3>No live vehicles are listed right now.</h3>
+          <p className="muted">
+            Example vehicles below are for display only and cannot be booked.
+          </p>
         </div>
       ) : (
         <div className="empty-state">
@@ -271,6 +292,7 @@ function RentContent() {
           </button>
         </div>
       )}
+      {!loading && !inventoryError && inventory.length === 0 && <DemoVehicleShowcase />}
 
       {/* FOOTER NOTICE ON REGULATORY COMPLIANCE */}
       <div

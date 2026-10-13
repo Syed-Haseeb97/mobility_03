@@ -91,7 +91,9 @@ export default function RootLayout({
                       Partner Space
                     </span>
                     <div style={{ display: "grid", gap: 7, fontSize: 13, color: "#cbd0c5" }}>
-                      <Link href="/list-your-vehicle">Become a Partner</Link>
+                      <Link href="/list-your-vehicle">
+                        {process.env.NODE_ENV === "production" ? "Partner Preview" : "Become a Partner"}
+                      </Link>
                       {process.env.NODE_ENV !== "production" && <Link href="/host/dashboard">Host Dashboard</Link>}
                       {process.env.NODE_ENV !== "production" && <Link href="/host/listings">Garage Management</Link>}
                       {process.env.NODE_ENV !== "production" && <Link href="/host/add-vehicle">List New Vehicle</Link>}

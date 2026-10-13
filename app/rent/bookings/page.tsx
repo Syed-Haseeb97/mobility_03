@@ -21,6 +21,7 @@ import { useSession } from "@/components/session-provider";
 
 export default function BookingsPage() {
   const { currentUser } = useSession();
+  const isDemoEnvironment = process.env.NODE_ENV !== "production";
   const [items, setItems] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterTab, setFilterTab] = useState<"ALL" | "CONFIRMED" | "ACTIVE_TRIP" | "COMPLETED" | "CANCELLED">("ALL");
@@ -55,7 +56,7 @@ export default function BookingsPage() {
   };
 
   useEffect(() => {
-    fetchBookings();
+    if (isDemoEnvironment) fetchBookings();
   }, [currentUser]);
 
   const handleCancelBooking = async (id: string) => {
@@ -109,6 +110,30 @@ export default function BookingsPage() {
     if (filterTab === "ALL") return true;
     return b.status === filterTab;
   });
+
+  if (!isDemoEnvironment) {
+    return (
+      <main className="page-shell">
+        <div className="page-top">
+          <div>
+            <div className="eyebrow">Customer Account / Travel History</div>
+            <h1 className="page-heading">Trips are in preview.</h1>
+            <p className="page-intro">
+              Reservations, receipts, and trip management will be available after secure
+              customer accounts and persistent booking services are configured.
+            </p>
+          </div>
+        </div>
+        <div className="empty-state" role="status">
+          <h3>Trip management is unavailable in this preview.</h3>
+          <p className="muted">You can still browse the current public marketplace.</p>
+          <Link className="button-primary" href="/rent" style={{ marginTop: 18 }}>
+            Browse marketplace
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="page-shell">

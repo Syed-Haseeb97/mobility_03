@@ -23,6 +23,7 @@ import { useSession } from "@/components/session-provider";
 
 export default function AdminPage() {
   const { currentUser, switchUser } = useSession();
+  const isDemoEnvironment = process.env.NODE_ENV !== "production";
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"listings" | "kyc" | "bookings" | "payouts">("listings");
@@ -44,7 +45,7 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    fetchAdminData();
+    if (isDemoEnvironment) fetchAdminData();
   }, []);
 
   const handleModerateVehicle = async (vehicleId: string, status: "approved" | "rejected", reason?: string) => {
@@ -82,6 +83,30 @@ export default function AdminPage() {
   };
 
   const isAdmin = currentUser?.role === "admin";
+
+  if (!isDemoEnvironment) {
+    return (
+      <main className="page-shell">
+        <div className="page-top">
+          <div>
+            <div className="eyebrow">Platform Governance / Operational Desk</div>
+            <h1 className="page-heading">Administration is unavailable.</h1>
+            <p className="page-intro">
+              Administrative tools will remain unavailable until secure server-side
+              authentication, authorization, and persistent storage are configured.
+            </p>
+          </div>
+        </div>
+        <div className="empty-state" role="status">
+          <h3>No administrative actions are available in this preview.</h3>
+          <p className="muted">Return to the public marketplace to browse current listings.</p>
+          <Link className="button-primary" href="/rent" style={{ marginTop: 18 }}>
+            Browse marketplace
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="page-shell">

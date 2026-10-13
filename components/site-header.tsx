@@ -191,7 +191,9 @@ export function SiteHeader() {
         <Link
           className="nav-cta"
           href={
-            currentRole === "owner"
+            !isDemoEnvironment
+              ? "/list-your-vehicle"
+              : currentRole === "owner"
               ? "/host/dashboard"
               : currentRole === "admin"
               ? "/admin"
@@ -199,7 +201,11 @@ export function SiteHeader() {
           }
           onClick={() => setOpen(false)}
         >
-          {currentRole === "owner" ? (
+          {!isDemoEnvironment ? (
+            <>
+              Partner Preview <ArrowUpRight size={15} />
+            </>
+          ) : currentRole === "owner" ? (
             <>
               Host Studio <ArrowUpRight size={15} />
             </>

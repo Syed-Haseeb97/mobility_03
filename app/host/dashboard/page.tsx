@@ -23,6 +23,7 @@ import { useSession } from "@/components/session-provider";
 
 export default function HostDashboard() {
   const { currentUser } = useSession();
+  const isDemoEnvironment = process.env.NODE_ENV !== "production";
   const [data, setData] = useState<{
     metrics: {
       grossBookingsAmount: number;
@@ -78,7 +79,7 @@ export default function HostDashboard() {
   };
 
   useEffect(() => {
-    fetchHostData();
+    if (isDemoEnvironment) fetchHostData();
   }, [currentUser]);
 
   const handleExecuteHandover = async (e: React.FormEvent) => {
@@ -156,6 +157,30 @@ export default function HostDashboard() {
       alert("Network error processing payout");
     }
   };
+
+  if (!isDemoEnvironment) {
+    return (
+      <main className="page-shell">
+        <div className="page-top">
+          <div>
+            <div className="eyebrow">Partner Operations / Host Studio</div>
+            <h1 className="page-heading">Partner tools are in preview.</h1>
+            <p className="page-intro">
+              Vehicle management, trip handovers, and payouts will be available after
+              secure partner accounts and persistent storage are configured.
+            </p>
+          </div>
+        </div>
+        <div className="empty-state" role="status">
+          <h3>Host management is unavailable in this preview.</h3>
+          <p className="muted">Review the partner onboarding information for current availability.</p>
+          <Link className="button-primary" href="/list-your-vehicle" style={{ marginTop: 18 }}>
+            Partner onboarding preview
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="page-shell">

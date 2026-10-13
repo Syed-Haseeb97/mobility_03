@@ -14,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { VehicleCard } from "@/components/vehicle-card";
+import { DemoVehicleShowcase } from "@/components/demo-vehicle-showcase";
 import { HomeSearch } from "@/components/home-search";
 import { HeroVehicleRotator } from "@/components/hero-vehicle-rotator";
 import { db } from "@/lib/server/db";
@@ -22,6 +23,7 @@ import type { Vehicle } from "@/lib/data";
 export const revalidate = 0;
 
 export default function Home() {
+  const isDemoEnvironment = process.env.NODE_ENV !== "production";
   const featuredVehicles = db
     .getVehicles({ status: "approved" })
     .slice(0, 3)
@@ -50,7 +52,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="hero-art" aria-label="A selection of vehicles available through MOBILITY">
+          <div className="hero-art" aria-label="Illustrative vehicles from the MOBILITY marketplace">
             <div className="hero-art-glow" />
             <HeroVehicleRotator />
             <div className="hero-vehicle-shadow" />
@@ -103,13 +105,21 @@ export default function Home() {
             {featuredVehicles.map((vehicle) => <VehicleCard key={vehicle.id} vehicle={vehicle} />)}
           </div>
         ) : (
-          <div className="landing-empty-inventory">
-            <span className="empty-inventory-icon"><Bike size={22} /></span>
-            <div><h3>Your next ride starts here.</h3><p>There are no published vehicles to show right now. Check back soon or explore the full marketplace.</p></div>
-            <Link href="/rent" className="landing-outline-cta">Browse marketplace <ArrowRight size={15} /></Link>
-          </div>
+          <>
+            <div className="landing-empty-inventory">
+              <span className="empty-inventory-icon"><Bike size={22} /></span>
+              <div><h3>Your next ride starts here.</h3><p>There are no published vehicles to show right now. Check back soon or explore the full marketplace.</p></div>
+              <Link href="/rent" className="landing-outline-cta">Browse marketplace <ArrowRight size={15} /></Link>
+            </div>
+            <DemoVehicleShowcase />
+          </>
         )}
-        <p className="inventory-note"><span className="inventory-note-dot" /> Showing currently published listings. Vehicle availability and documentation should be confirmed before booking.</p>
+        <p className="inventory-note">
+          <span className="inventory-note-dot" />
+          {featuredVehicles.length > 0
+            ? "Showing currently published listings. Vehicle availability and documentation should be confirmed before booking."
+            : "Example vehicles above are illustrative only and are not published or bookable listings."}
+        </p>
       </section>
 
       <section className="how-section">
@@ -131,7 +141,7 @@ export default function Home() {
 
       <section className="partner-section">
         <div className="partner-art" aria-hidden="true"><div className="partner-ring ring-one" /><div className="partner-ring ring-two" /><Sparkles className="partner-sparkle" size={22} /><div className="partner-mini-card"><span>YOUR VEHICLE</span><strong>Could go further.</strong><div className="partner-mini-lines"><i /><i /><i /></div></div></div>
-        <div className="partner-copy"><span className="section-kicker">FOR OWNERS & LOCAL PARTNERS</span><h2>Your vehicle could be someone’s way forward.</h2><p>Bring your vehicle to a marketplace built around local travel. Create a listing, set your rates and share the pickup details that help renters make an informed choice.</p><div className="partner-benefits"><span><Check size={15} /> Set your listing details</span><span><Check size={15} /> Choose your rates</span><span><Check size={15} /> Manage your vehicles</span></div><Link href="/list-your-vehicle" className="landing-primary-cta">Become a vehicle partner <ArrowUpRight size={17} /></Link></div>
+        <div className="partner-copy"><span className="section-kicker">FOR OWNERS & LOCAL PARTNERS</span><h2>Your vehicle could be someone’s way forward.</h2><p>{isDemoEnvironment ? "Bring your vehicle to a marketplace built around local travel. Create a listing, set your rates and share the pickup details that help renters make an informed choice." : "Partner onboarding is currently a preview. Listing creation and vehicle management will open once secure partner accounts, persistent storage, document review, and payment infrastructure are ready."}</p><div className="partner-benefits">{isDemoEnvironment ? <><span><Check size={15} /> Set your listing details</span><span><Check size={15} /> Choose your rates</span><span><Check size={15} /> Manage your vehicles</span></> : <><span><Check size={15} /> Preview partner requirements</span><span><Check size={15} /> No listing submissions collected</span><span><Check size={15} /> Secure onboarding required</span></>}</div><Link href="/list-your-vehicle" className="landing-primary-cta">{isDemoEnvironment ? "Become a vehicle partner" : "Explore partner preview"} <ArrowUpRight size={17} /></Link></div>
       </section>
 
       <section className="landing-last-cta"><div><span className="section-kicker">YOUR NEXT TRIP IS OUT THERE</span><h2>Let&apos;s get you<br /><span>moving.</span></h2></div><Link href="/rent" className="landing-primary-cta">Explore the marketplace <ArrowUpRight size={17} /></Link><span className="last-cta-decoration" aria-hidden="true">M.</span></section>

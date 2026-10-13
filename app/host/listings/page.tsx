@@ -8,6 +8,7 @@ import { useSession } from "@/components/session-provider";
 
 export default function HostListings() {
   const { currentUser } = useSession();
+  const isDemoEnvironment = process.env.NODE_ENV !== "production";
   const [items, setItems] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +29,7 @@ export default function HostListings() {
   };
 
   useEffect(() => {
-    fetchListings();
+    if (isDemoEnvironment) fetchListings();
   }, [currentUser]);
 
   async function toggleStatus(id: string, currentStatus: string) {
@@ -57,6 +58,30 @@ export default function HostListings() {
     } catch {
       alert("Failed to deactivate listing");
     }
+  }
+
+  if (!isDemoEnvironment) {
+    return (
+      <main className="page-shell">
+        <div className="page-top">
+          <div>
+            <div className="eyebrow">Host Studio / Garage Management</div>
+            <h1 className="page-heading">Partner tools are in preview.</h1>
+            <p className="page-intro">
+              Listing management will be available after secure partner accounts and
+              persistent storage are configured.
+            </p>
+          </div>
+        </div>
+        <div className="empty-state" role="status">
+          <h3>Your garage is unavailable in this preview.</h3>
+          <p className="muted">Review the partner onboarding information for current availability.</p>
+          <Link className="button-primary" href="/list-your-vehicle" style={{ marginTop: 18 }}>
+            Partner onboarding preview
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   return (
