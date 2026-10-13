@@ -23,7 +23,7 @@ import type { Vehicle } from "@/lib/data";
 export const revalidate = 0;
 
 export default function Home() {
-  const isDemoEnvironment = process.env.NODE_ENV !== "production";
+  const isDemoEnvironment = true;
   const featuredVehicles = db
     .getVehicles({ status: "approved" })
     .slice(0, 3)

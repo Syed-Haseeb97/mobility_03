@@ -713,56 +713,46 @@ const SEED_PAYOUTS: PayoutRecord[] = [
 
 const SEED_DISPUTES: DisputeRecord[] = [];
 
-function emptyDatabaseStore(): DatabaseStore {
+let memoryStore: DatabaseStore | null = null;
+
+function seedStore(): DatabaseStore {
   return {
-    users: [],
-    vehicles: [],
-    bookings: [],
-    payouts: [],
-    disputes: [],
+    users: SEED_USERS,
+    vehicles: SEED_VEHICLES,
+    bookings: SEED_BOOKINGS,
+    payouts: SEED_PAYOUTS,
+    disputes: SEED_DISPUTES,
   };
 }
 
 function loadDatabase(): DatabaseStore {
-  // The checked-in JSON file is demonstration data, not a production database.
-  // Never read it in production; until a real database is configured, serve an empty store.
-  if (process.env.NODE_ENV === "production") return emptyDatabaseStore();
+  if (memoryStore) return memoryStore;
 
   try {
-    ensureDirectoryExistence(DB_FILE);
-    if (!fs.existsSync(DB_FILE)) {
-      const initial: DatabaseStore = {
-        users: SEED_USERS,
-        vehicles: SEED_VEHICLES,
-        bookings: SEED_BOOKINGS,
-        payouts: SEED_PAYOUTS,
-        disputes: SEED_DISPUTES,
-      };
-      fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), "utf-8");
-      return initial;
+    if (fs.existsSync(DB_FILE)) {
+      const raw = fs.readFileSync(DB_FILE, "utf-8");
+      memoryStore = JSON.parse(raw) as DatabaseStore;
+      return memoryStore;
     }
-    const raw = fs.readFileSync(DB_FILE, "utf-8");
-    return JSON.parse(raw) as DatabaseStore;
   } catch (err) {
     console.error("Error reading database file:", err);
-    return {
-      users: SEED_USERS,
-      vehicles: SEED_VEHICLES,
-      bookings: SEED_BOOKINGS,
-      payouts: SEED_PAYOUTS,
-      disputes: SEED_DISPUTES,
-    };
   }
+
+  memoryStore = seedStore();
+  return memoryStore;
 }
 
 function saveDatabase(data: DatabaseStore) {
-  // Fail closed: production persistence must be provided by a real database adapter.
-  if (process.env.NODE_ENV === "production") return;
-
-  ensureDirectoryExistence(DB_FILE);
-  const tmpFile = DB_FILE + ".tmp";
-  fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2), "utf-8");
-  fs.renameSync(tmpFile, DB_FILE);
+  memoryStore = data;
+  try {
+    ensureDirectoryExistence(DB_FILE);
+    const tmpFile = DB_FILE + ".tmp";
+    fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2), "utf-8");
+    fs.renameSync(tmpFile, DB_FILE);
+  } catch (err) {
+    // Vercel serverless filesystems are read-only. Keep the demo store in memory.
+    console.error("Database file is not writable; keeping in-memory demo state.", err);
+  }
 }
 
 // Thread-safe / In-process database helper functions

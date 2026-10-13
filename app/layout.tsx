@@ -71,7 +71,7 @@ export default function RootLayout({
                     </span>
                     <div style={{ display: "grid", gap: 7, fontSize: 13, color: "#cbd0c5" }}>
                       <Link href="/rent">Explore Vehicles</Link>
-                      {process.env.NODE_ENV !== "production" && <Link href="/rent/bookings">My Reservations</Link>}
+                      {true && <Link href="/rent/bookings">My Reservations</Link>}
                       <Link href="/guidelines">Campus Guidelines</Link>
                     </div>
                   </div>
@@ -92,11 +92,11 @@ export default function RootLayout({
                     </span>
                     <div style={{ display: "grid", gap: 7, fontSize: 13, color: "#cbd0c5" }}>
                       <Link href="/list-your-vehicle">
-                        {process.env.NODE_ENV === "production" ? "Partner Preview" : "Become a Partner"}
+                        {false ? "Partner Preview" : "Become a Partner"}
                       </Link>
-                      {process.env.NODE_ENV !== "production" && <Link href="/host/dashboard">Host Dashboard</Link>}
-                      {process.env.NODE_ENV !== "production" && <Link href="/host/listings">Garage Management</Link>}
-                      {process.env.NODE_ENV !== "production" && <Link href="/host/add-vehicle">List New Vehicle</Link>}
+                      {true && <Link href="/host/dashboard">Host Dashboard</Link>}
+                      {true && <Link href="/host/listings">Garage Management</Link>}
+                      {true && <Link href="/host/add-vehicle">List New Vehicle</Link>}
                     </div>
                   </div>
 
@@ -115,7 +115,7 @@ export default function RootLayout({
                       Governance
                     </span>
                     <div style={{ display: "grid", gap: 7, fontSize: 13, color: "#cbd0c5" }}>
-                      {process.env.NODE_ENV !== "production" && <Link href="/admin">Platform Operations Desk</Link>}
+                      {true && <Link href="/admin">Platform Operations Desk</Link>}
                       <Link href="/guidelines#verification">Verification Standards</Link>
                       <Link href="/guidelines#safety">Safety &amp; Compliance</Link>
                     </div>

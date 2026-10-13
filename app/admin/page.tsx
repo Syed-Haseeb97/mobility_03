@@ -23,7 +23,7 @@ import { useSession } from "@/components/session-provider";
 
 export default function AdminPage() {
   const { currentUser, switchUser } = useSession();
-  const isDemoEnvironment = process.env.NODE_ENV !== "production";
+  const isDemoEnvironment = true;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"listings" | "kyc" | "bookings" | "payouts">("listings");

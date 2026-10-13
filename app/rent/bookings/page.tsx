@@ -21,7 +21,7 @@ import { useSession } from "@/components/session-provider";
 
 export default function BookingsPage() {
   const { currentUser } = useSession();
-  const isDemoEnvironment = process.env.NODE_ENV !== "production";
+  const isDemoEnvironment = true;
   const [items, setItems] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterTab, setFilterTab] = useState<"ALL" | "CONFIRMED" | "ACTIVE_TRIP" | "COMPLETED" | "CANCELLED">("ALL");

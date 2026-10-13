@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 export default function HostIntro() {
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = false;
 
   return (
     <main>

@@ -23,7 +23,7 @@ import { useSession } from "@/components/session-provider";
 
 export default function HostDashboard() {
   const { currentUser } = useSession();
-  const isDemoEnvironment = process.env.NODE_ENV !== "production";
+  const isDemoEnvironment = true;
   const [data, setData] = useState<{
     metrics: {
       grossBookingsAmount: number;

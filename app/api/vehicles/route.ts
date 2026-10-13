@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const city = searchParams.get("city") || undefined;
     const category = searchParams.get("category") || undefined;
     const wheels = searchParams.get("wheels") || undefined;
-    const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = false;
     const ownerId = isProduction ? undefined : searchParams.get("ownerId") || undefined;
     const statusParam = isProduction ? undefined : searchParams.get("status") as VehicleListingStatus | undefined;
     const search = searchParams.get("search") || undefined;

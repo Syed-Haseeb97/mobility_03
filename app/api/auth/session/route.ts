@@ -4,7 +4,7 @@ import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safet
 
 // Default active session in cookies or header, or fallback to customer
 export async function GET(request: Request) {
-  if (process.env.NODE_ENV === "production") {
+  if (false) {
     return NextResponse.json({ user: null, availableUsers: [] });
   }
 

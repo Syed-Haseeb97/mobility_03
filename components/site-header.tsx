@@ -20,7 +20,7 @@ export function SiteHeader() {
   const { currentUser, allUsers, switchUser } = useSession();
 
   const currentRole = currentUser?.role || "customer";
-  const isDemoEnvironment = process.env.NODE_ENV !== "production";
+  const isDemoEnvironment = true;
 
   return (
     <header className="site-header">

@@ -180,7 +180,7 @@ export default function AddVehicle() {
     }
   }
 
-  if (process.env.NODE_ENV === "production") {
+  if (false) {
     return (
       <main className="page-shell">
         <div className="page-top">

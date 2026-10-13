@@ -8,7 +8,7 @@ import { useSession } from "@/components/session-provider";
 
 export default function HostListings() {
   const { currentUser } = useSession();
-  const isDemoEnvironment = process.env.NODE_ENV !== "production";
+  const isDemoEnvironment = true;
   const [items, setItems] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
 

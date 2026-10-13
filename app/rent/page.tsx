@@ -15,7 +15,7 @@ function RentContent() {
   const initialEnd = searchParams.get("end") || "";
 
   const [inventory, setInventory] = useState<Vehicle[]>(
-    process.env.NODE_ENV === "production" ? [] : seedVehicles
+    false ? [] : seedVehicles
   );
   const [loading, setLoading] = useState(true);
   const [inventoryError, setInventoryError] = useState(false);
@@ -80,7 +80,7 @@ function RentContent() {
     } catch (err) {
       console.warn("Unable to load vehicle inventory", err);
       setInventoryError(true);
-      setInventory(process.env.NODE_ENV === "production" ? [] : seedVehicles);
+      setInventory(false ? [] : seedVehicles);
     } finally {
       setLoading(false);
     }
