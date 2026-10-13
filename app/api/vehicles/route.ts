@@ -65,6 +65,11 @@ export async function POST(request: Request) {
       city,
       campusZone,
       pickupAddress,
+      addressLine1,
+      addressLine2,
+      state,
+      country,
+      pinCode,
       price,
       hourlyPrice,
       deposit,
@@ -76,6 +81,7 @@ export async function POST(request: Request) {
       helmetOption,
       helmetCondition,
       image,
+      additionalPhotos,
       description,
       hostNotes,
       guidelines,
@@ -86,6 +92,15 @@ export async function POST(request: Request) {
         { error: "Make, model and a valid daily rate of at least ₹200 are required." },
         { status: 400 }
       );
+    }
+
+    if (!addressLine1 || !String(addressLine1).trim() || !city || !String(city).trim() || !state || !String(state).trim() || !country || !String(country).trim() || !pinCode || !String(pinCode).trim()) {
+      return NextResponse.json({ error: "Address line 1, city, state, country and PIN code are required." }, { status: 400 });
+    }
+
+    const photos = Array.isArray(additionalPhotos) ? [image, ...additionalPhotos] : (image ? [image] : []);
+    if (photos.length < 1 || photos.length > 5 || photos.some((photo) => typeof photo !== "string" || !photo.startsWith("data:image/"))) {
+      return NextResponse.json({ error: "Upload between 1 and 5 valid vehicle photos." }, { status: 400 });
     }
 
     if (!description || description.trim().length < 15) {
@@ -104,9 +119,14 @@ export async function POST(request: Request) {
       year: Number(year) || new Date().getFullYear(),
       category: category || "Bike",
       wheels: wheels || (category === "Bike" || category === "Scooter" ? "2-Wheeler" : "4-Wheeler"),
-      city: city || "Chennai",
-      campusZone: campusZone || "North Campus Gate / Transit Hub",
-      pickupAddress: pickupAddress || "Campus Transit Hub Bay",
+      city: String(city).trim(),
+      state: String(state).trim(),
+      country: String(country).trim(),
+      pinCode: String(pinCode).trim(),
+      addressLine1: String(addressLine1).trim(),
+      addressLine2: String(addressLine2 || "").trim(),
+      campusZone: "",
+      pickupAddress: [String(addressLine1).trim(), String(addressLine2 || "").trim()].filter(Boolean).join(", "),
       price: Number(price),
       hourlyPrice: Number(hourlyPrice) || Math.round(Number(price) / 7),
       deposit: Number(deposit) || Math.round(Number(price) * 1.5),
@@ -121,7 +141,8 @@ export async function POST(request: Request) {
       helmetCondition: helmetCondition || "Certified sanitized helmet provided",
       rating: 5.0,
       trips: 0,
-      image: image || (wheels === "2-Wheeler" ? "/vehicles/hero-splendor.png" : "/vehicles/honda-city.png"),
+      image: photos[0],
+      additionalPhotos: photos.slice(1),
       description: description.trim(),
       hostNotes: hostNotes || "Handover against valid driving license.",
       guidelines: guidelines || "Follow designated campus speed limits and wear protective helmet.",
