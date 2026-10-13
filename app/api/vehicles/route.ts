@@ -99,7 +99,7 @@ export async function POST(request: Request) {
     }
 
     const photos = Array.isArray(additionalPhotos) ? [image, ...additionalPhotos] : (image ? [image] : []);
-    if (photos.length < 1 || photos.length > 5 || photos.some((photo) => typeof photo !== "string" || !photo.startsWith("data:image/"))) {
+    if (photos.length < 1 || photos.length > 5 || photos.some((photo) => typeof photo !== "string" || !photo.startsWith("data:image/jpeg;base64,") || photo.length > 2_000_000)) {
       return NextResponse.json({ error: "Upload between 1 and 5 valid vehicle photos." }, { status: 400 });
     }
 
