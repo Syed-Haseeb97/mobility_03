@@ -48,6 +48,11 @@ export interface VehicleRecord {
   city: string;
   campusZone: string;
   pickupAddress: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  state?: string;
+  country?: string;
+  pinCode?: string;
   price: number; // daily rate in INR
   hourlyPrice: number; // hourly rate in INR
   deposit: number; // refundable deposit in INR
