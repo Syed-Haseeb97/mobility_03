@@ -708,8 +708,7 @@ export default function AddVehicle() {
           >
             <ShieldCheck size={16} className="text-[#647c1f]" style={{ marginBottom: 4 }} />
             <div>
-              <strong>Instant Database Persistence:</strong> Your listing is stored in the platform
-              database and becomes immediately discoverable in the search catalog.
+              <strong>Saved for review:</strong> Your listing details and uploaded photos are saved together. New listings remain pending review until approved.
             </div>
           </div>
         </aside>
