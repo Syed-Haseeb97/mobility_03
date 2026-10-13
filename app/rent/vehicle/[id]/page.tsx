@@ -32,6 +32,7 @@ export default function VehicleDetail() {
   const { currentUser } = useSession();
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [activePhoto, setActivePhoto] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // Booking form state
@@ -242,7 +243,7 @@ export default function VehicleDetail() {
       <div className="page-top" style={{ marginTop: 24 }}>
         <div>
           <div className="eyebrow">
-            {vehicle.city} · {vehicle.campusZone || "Campus Edge"} · {vehicle.wheels}
+            {vehicle.city}{vehicle.state ? ", " + vehicle.state : ""} · {vehicle.wheels}
           </div>
           <h1 className="page-heading">
             {vehicle.make}
@@ -269,7 +270,7 @@ export default function VehicleDetail() {
           <div style={{ position: "relative" }}>
             <Image
               className="detail-image"
-              src={vehicle.image}
+              src={[vehicle.image, ...(vehicle.additionalPhotos || [])][activePhoto] || vehicle.image}
               alt={vehicle.name}
               width={1200}
               height={750}
@@ -301,6 +302,23 @@ export default function VehicleDetail() {
               </div>
             )}
           </div>
+
+          {(vehicle.additionalPhotos?.length || 0) > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(76px, 96px))", gap: 8, marginTop: 10 }}>
+              {[vehicle.image, ...(vehicle.additionalPhotos || [])].map((photo, index) => (
+                <button
+                  key={photo + index}
+                  type="button"
+                  onClick={() => setActivePhoto(index)}
+                  aria-label={"Show vehicle photo " + (index + 1)}
+                  aria-pressed={activePhoto === index}
+                  style={{ padding: 0, height: 70, overflow: "hidden", border: activePhoto === index ? "2px solid #8fa82e" : "1px solid var(--line)", background: "#e6e8df" }}
+                >
+                  <img src={photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* QUICK SPEC TILES */}
           <div className="stat-row" style={{ marginTop: 20 }}>
@@ -361,9 +379,9 @@ export default function VehicleDetail() {
               <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                 <MapPin size={16} className="text-[#678220]" style={{ marginTop: 2 }} />
                 <div>
-                  <strong>{vehicle.campusZone || "Campus Edge Transit Hub"}</strong>
+                  <strong>Pickup address</strong>
                   <p className="muted" style={{ margin: "2px 0 0" }}>
-                    {vehicle.pickupAddress || "Pickup kiosk coordinates provided upon reservation."}
+                    {[vehicle.addressLine1 || vehicle.pickupAddress, vehicle.addressLine2, vehicle.city, vehicle.state, vehicle.country, vehicle.pinCode].filter(Boolean).join(", ") || "Pickup details will be confirmed with the host."}
                   </p>
                 </div>
               </div>
