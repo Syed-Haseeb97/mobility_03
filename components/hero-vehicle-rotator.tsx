@@ -39,7 +39,7 @@ export function HeroVehicleRotator() {
 
   return (
     <>
-      <div className="hero-art-topline" aria-live="polite" aria-atomic="true">
+      <div className="hero-art-topline" aria-live="off" aria-atomic="true">
         <span>MOVE AT YOUR PACE</span>
         <span>
           0{activeIndex + 1} — 0{VEHICLES.length} · {VEHICLES[activeIndex].name}
@@ -72,7 +72,11 @@ export function HeroVehicleRotator() {
         })}
       </div>
 
-      <div className="hero-vehicle-dots" aria-label="Choose featured vehicle">
+      <div
+        className="hero-vehicle-dots"
+        aria-label="Choose featured vehicle"
+        style={{ position: "absolute", zIndex: 6, bottom: "13%", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7 }}
+      >
         {VEHICLES.map((vehicle, index) => (
           <button
             key={vehicle.src}
