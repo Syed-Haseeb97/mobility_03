@@ -6,6 +6,24 @@ import { ArrowLeft, ArrowRight, Check, HardHat, ShieldCheck, UploadCloud, X } fr
 import { type VehicleCategory, type VehicleWheels } from "@/lib/data";
 import { useSession } from "@/components/session-provider";
 
+async function prepareVehiclePhoto(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1440 / bitmap.width, 1440 / bitmap.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const context = canvas.getContext("2d");
+  if (!context) {
+    bitmap.close();
+    throw new Error("Image processing is unavailable");
+  }
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  return canvas.toDataURL("image/jpeg", 0.78);
+}
+
 export default function AddVehicle() {
   const router = useRouter();
   const { currentUser } = useSession();
@@ -489,7 +507,7 @@ export default function AddVehicle() {
 
                 <label>
                   Vehicle photos
-                  <span style={{ fontWeight: 400, color: "#74786d" }}>Upload up to 5 real photos. The first photo becomes the main listing image.</span>
+                  <span style={{ fontWeight: 400, color: "#74786d" }}>Upload up to 5 real photos. Images are resized for faster previews and smaller uploads; the first photo becomes the main listing image.</span>
                   <input
                     className="form-input"
                     type="file"
@@ -510,12 +528,7 @@ export default function AddVehicle() {
                         return;
                       }
                       try {
-                        const encoded = await Promise.all(files.map((file) => new Promise<string>((resolve, reject) => {
-                          const reader = new FileReader();
-                          reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("Could not read image"));
-                          reader.onerror = () => reject(new Error("Could not read image"));
-                          reader.readAsDataURL(file);
-                        })));
+                        const encoded = await Promise.all(files.map(prepareVehiclePhoto));
                         setSelectedImages(encoded);
                         setPhotoNames(files.map((file) => file.name));
                         setError("");
