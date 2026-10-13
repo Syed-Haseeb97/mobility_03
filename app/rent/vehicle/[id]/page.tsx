@@ -251,8 +251,8 @@ export default function VehicleDetail() {
             {vehicle.name}
           </h1>
           <p className="page-intro" style={{ marginTop: 8 }}>
-            ★ {vehicle.rating.toFixed(2)} · {vehicle.trips} trips · Hosted by{" "}
-            <strong>{vehicle.host}</strong>
+            {vehicle.trips > 0 && vehicle.rating > 0 ? <>★ {vehicle.rating.toFixed(2)} · {vehicle.trips} trips · </> : <span style={{ color: "#546e14", fontWeight: 700 }}>New listing · </span>}
+            Hosted by <strong>{vehicle.host}</strong>
           </p>
         </div>
 
@@ -321,26 +321,13 @@ export default function VehicleDetail() {
           )}
 
           {/* QUICK SPEC TILES */}
-          <div className="stat-row" style={{ marginTop: 20 }}>
-            <div className="stat">
-              <strong>{vehicle.seats}</strong>
-              <span>
-                <Users size={12} style={{ display: "inline" }} /> Seating Capacity
-              </span>
+          {(vehicle.showSeats !== false || vehicle.showTransmission !== false || vehicle.showFuel !== false) && (
+            <div className="stat-row" style={{ marginTop: 20 }}>
+              {vehicle.showSeats !== false && <div className="stat"><strong>{vehicle.seats}</strong><span><Users size={12} style={{ display: "inline" }} /> Seating Capacity</span></div>}
+              {vehicle.showTransmission !== false && <div className="stat"><strong>{vehicle.transmission}</strong><span><Gauge size={12} style={{ display: "inline" }} /> Transmission</span></div>}
+              {vehicle.showFuel !== false && <div className="stat"><strong>{vehicle.fuel}</strong><span><Fuel size={12} style={{ display: "inline" }} /> Powertrain</span></div>}
             </div>
-            <div className="stat">
-              <strong>{vehicle.transmission}</strong>
-              <span>
-                <Gauge size={12} style={{ display: "inline" }} /> Transmission
-              </span>
-            </div>
-            <div className="stat">
-              <strong>{vehicle.fuel}</strong>
-              <span>
-                <Fuel size={12} style={{ display: "inline" }} /> Powertrain
-              </span>
-            </div>
-          </div>
+          )}
 
           {/* OWNER LISTING DESCRIPTION */}
           <div style={{ padding: "30px 0", borderBottom: "1px solid var(--line)" }}>
@@ -364,6 +351,7 @@ export default function VehicleDetail() {
           </div>
 
           {/* PICKUP & LOGISTICAL SPECIFICATIONS */}
+          {vehicle.showPickupAddress !== false && (
           <div style={{ padding: "26px 0", borderBottom: "1px solid var(--line)" }}>
             <div className="eyebrow">Logistics &amp; Handover Location</div>
             <h3 style={{ fontSize: 18, margin: "10px 0 12px" }}>Designated Collection Point</h3>
@@ -407,9 +395,10 @@ export default function VehicleDetail() {
               )}
             </div>
           </div>
+          )}
 
           {/* HELMET & SAFETY PROTOCOL */}
-          {is2Wheeler && (
+          {is2Wheeler && (vehicle.helmetIncluded ?? Boolean(vehicle.helmetOption?.includes("Included"))) && (
             <div style={{ padding: "26px 0", borderBottom: "1px solid var(--line)" }}>
               <div className="eyebrow">Campus Safety &amp; Helmet Protocol</div>
               <h3 style={{ fontSize: 18, margin: "10px 0 12px" }}>Helmet Equipment Status</h3>
@@ -426,11 +415,10 @@ export default function VehicleDetail() {
                 <HardHat size={28} className="text-[#55691d]" />
                 <div>
                   <strong style={{ color: "#2d3810" }}>
-                    {vehicle.helmetOption || "1 ISI Certified Helmet Included"}
+                    {vehicle.helmetOption || "Helmet included"}
                   </strong>
                   <p style={{ margin: "3px 0 0", fontSize: 12, color: "#5a6839" }}>
-                    {vehicle.helmetCondition ||
-                      "Sanitized ISI/DOT certified helmet with functional visor provided at key handover."}
+                    {vehicle.helmetCondition || "Helmet details provided by the host."}
                   </p>
                 </div>
               </div>
