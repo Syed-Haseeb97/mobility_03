@@ -51,7 +51,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <div className="vehicle-meta">
           <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
             <MapPin size={11} />
-            {vehicle.campusZone ? vehicle.campusZone.split("/")[0].trim() : vehicle.city}
+            {vehicle.addressLine1 || vehicle.pickupAddress?.split(",")[0].trim() || vehicle.city}{vehicle.city ? ", " + vehicle.city : ""}
           </span>
           <span>★ {vehicle.rating.toFixed(2)} · {vehicle.trips} trips</span>
         </div>
