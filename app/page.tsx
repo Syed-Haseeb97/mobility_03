@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { VehicleCard } from "@/components/vehicle-card";
 import { HomeSearch } from "@/components/home-search";
+import { HeroVehicleRotator } from "@/components/hero-vehicle-rotator";
 import { db } from "@/lib/server/db";
 import type { Vehicle } from "@/lib/data";
 
@@ -50,11 +51,8 @@ export default function Home() {
           </div>
 
           <div className="hero-art" aria-label="A selection of vehicles available through MOBILITY">
-            <div className="hero-art-topline"><span>MOVE AT YOUR PACE</span><span>01 — 03</span></div>
             <div className="hero-art-glow" />
-            <div className="hero-vehicle-main">
-              <Image src="/vehicles/ather-450x.png" alt="Electric scooter for everyday campus rides" fill priority sizes="(max-width: 700px) 92vw, 54vw" />
-            </div>
+            <HeroVehicleRotator />
             <div className="hero-vehicle-shadow" />
             <div className="floating-route-card route-card-top">
               <span className="route-icon"><MapPin size={15} /></span>
