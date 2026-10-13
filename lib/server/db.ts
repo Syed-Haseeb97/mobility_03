@@ -73,6 +73,11 @@ export interface VehicleRecord {
   trips: number;
   image: string;
   additionalPhotos?: string[];
+  showPickupAddress?: boolean;
+  showTransmission?: boolean;
+  showFuel?: boolean;
+  showSeats?: boolean;
+  helmetIncluded?: boolean;
   description: string;
   hostNotes?: string;
   guidelines?: string;
