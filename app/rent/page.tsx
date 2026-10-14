@@ -2,10 +2,71 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, SlidersHorizontal, ShieldCheck, HardHat, RefreshCw } from "lucide-react";
+import { Search, SlidersHorizontal, ShieldCheck, RefreshCw } from "lucide-react";
 import { seedVehicles, type Vehicle, type VehicleCategory } from "@/lib/data";
 import { VehicleCard } from "@/components/vehicle-card";
 import { DemoVehicleShowcase } from "@/components/demo-vehicle-showcase";
+
+type RentalBasis = "Daily" | "Hourly";
+
+function PriceRange({
+  basis,
+  min,
+  max,
+  valueMin,
+  valueMax,
+  onMinChange,
+  onMaxChange,
+}: {
+  basis: RentalBasis;
+  min: number;
+  max: number;
+  valueMin: number;
+  valueMax: number;
+  onMinChange: (value: number) => void;
+  onMaxChange: (value: number) => void;
+}) {
+  const range = Math.max(max - min, 1);
+  const minPercent = ((valueMin - min) / range) * 100;
+  const maxPercent = ((valueMax - min) / range) * 100;
+  const step = basis === "Hourly" ? 5 : 50;
+
+  return (
+    <div className="price-range-filter" aria-label={`${basis} price range`}>
+      <div className="price-range-header">
+        <span className="filter-label">Price / {basis === "Hourly" ? "hour" : "day"}</span>
+        <span className="price-range-values">₹{valueMin.toLocaleString("en-IN")} – ₹{valueMax.toLocaleString("en-IN")}</span>
+      </div>
+      <div className="price-range-track-wrap">
+        <div className="price-range-track" />
+        <div
+          className="price-range-selected"
+          style={{ left: `${minPercent}%`, right: `${100 - maxPercent}%` }}
+        />
+        <input
+          className="price-range-input price-range-min"
+          aria-label={`Minimum ${basis.toLowerCase()} price`}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={valueMin}
+          onChange={(e) => onMinChange(Math.min(Number(e.target.value), valueMax - step))}
+        />
+        <input
+          className="price-range-input price-range-max"
+          aria-label={`Maximum ${basis.toLowerCase()} price`}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={valueMax}
+          onChange={(e) => onMaxChange(Math.max(Number(e.target.value), valueMin + step))}
+        />
+      </div>
+    </div>
+  );
+}
 
 function RentContent() {
   const searchParams = useSearchParams();
@@ -14,9 +75,7 @@ function RentContent() {
   const initialStart = searchParams.get("start") || "";
   const initialEnd = searchParams.get("end") || "";
 
-  const [inventory, setInventory] = useState<Vehicle[]>(
-    false ? [] : seedVehicles
-  );
+  const [inventory, setInventory] = useState<Vehicle[]>(seedVehicles);
   const [loading, setLoading] = useState(true);
   const [inventoryError, setInventoryError] = useState(false);
 
@@ -24,8 +83,27 @@ function RentContent() {
   const [city, setCity] = useState(initialCity === "" ? "All locations" : initialCity);
   const [category, setCategory] = useState("All types");
   const [wheelType, setWheelType] = useState(initialWheels);
-  const [rateFilter, setRateFilter] = useState("All rates");
+  const [rentalBasis, setRentalBasis] = useState<RentalBasis>("Daily");
   const [sort, setSort] = useState("Recommended");
+
+  const getPrice = (vehicle: Vehicle) =>
+    rentalBasis === "Hourly" ? vehicle.hourlyPrice ?? Math.round(vehicle.price / 24) : vehicle.price;
+
+  const priceBounds = useMemo(() => {
+    const prices = inventory.map(getPrice).filter((price) => Number.isFinite(price) && price > 0);
+    if (!prices.length) return { min: 0, max: 1000 };
+    const min = Math.floor(Math.min(...prices) / 10) * 10;
+    const max = Math.ceil(Math.max(...prices) / 10) * 10;
+    return { min, max: Math.max(max, min + (rentalBasis === "Hourly" ? 5 : 50)) };
+  }, [inventory, rentalBasis]);
+
+  const [priceMin, setPriceMin] = useState(0);
+  const [priceMax, setPriceMax] = useState(1000);
+
+  useEffect(() => {
+    setPriceMin(priceBounds.min);
+    setPriceMax(priceBounds.max);
+  }, [priceBounds.min, priceBounds.max]);
 
   const fetchVehicles = async () => {
     setLoading(true);
@@ -43,7 +121,6 @@ function RentContent() {
         throw new Error("Vehicle inventory response did not include a vehicles array");
       }
 
-      // An empty API result is real: do not replace it with seed inventory.
       const formatted: Vehicle[] = data.vehicles.map((v: any) => ({
         id: v.id,
         name: v.name,
@@ -80,7 +157,7 @@ function RentContent() {
     } catch (err) {
       console.warn("Unable to load vehicle inventory", err);
       setInventoryError(true);
-      setInventory(false ? [] : seedVehicles);
+      setInventory(seedVehicles);
     } finally {
       setLoading(false);
     }
@@ -102,23 +179,33 @@ function RentContent() {
           const cityMatches = city === "All locations" || v.city.toLowerCase() === city.toLowerCase();
           const catMatches = category === "All types" || v.category === category;
           const wheelMatches = wheelType === "All vehicles" || v.wheels === wheelType;
-          const rateMatches =
-            rateFilter === "All rates" ||
-            (rateFilter === "Under ₹1,000/day" && v.price < 1000);
+          const price = getPrice(v);
+          const priceMatches = price >= priceMin && price <= priceMax;
 
-          return textMatches && cityMatches && catMatches && wheelMatches && rateMatches;
+          return textMatches && cityMatches && catMatches && wheelMatches && priceMatches;
         })
-        .sort((a, b) =>
-          sort === "Price: low to high"
-            ? a.price - b.price
+        .sort((a, b) => {
+          const priceA = getPrice(a);
+          const priceB = getPrice(b);
+          return sort === "Price: low to high"
+            ? priceA - priceB
             : sort === "Price: high to low"
-            ? b.price - a.price
+            ? priceB - priceA
             : sort === "Top Rated"
             ? b.rating - a.rating
-            : b.rating * 10 + b.trips - (a.rating * 10 + a.trips)
-        ),
-    [inventory, query, city, category, wheelType, rateFilter, sort]
+            : b.rating * 10 + b.trips - (a.rating * 10 + a.trips);
+        }),
+    [inventory, query, city, category, wheelType, rentalBasis, priceMin, priceMax, sort]
   );
+
+  const resetFilters = () => {
+    setQuery("");
+    setCity("All locations");
+    setCategory("All types");
+    setWheelType("All vehicles");
+    setRentalBasis("Daily");
+    setSort("Recommended");
+  };
 
   return (
     <main className="page-shell">
@@ -138,10 +225,7 @@ function RentContent() {
 
       <div className="filter-bar">
         <label style={{ position: "relative", flex: "1 1 240px" }}>
-          <Search
-            size={16}
-            style={{ position: "absolute", left: 13, top: 14, color: "#85877c" }}
-          />
+          <Search size={16} style={{ position: "absolute", left: 13, top: 14, color: "#85877c" }} />
           <input
             aria-label="Search vehicles"
             placeholder="Search make, model, zone, or city"
@@ -151,63 +235,32 @@ function RentContent() {
           />
         </label>
 
-        <select
-          aria-label="Filter by wheels"
-          value={wheelType}
-          onChange={(e) => setWheelType(e.target.value)}
-        >
+        <select aria-label="Rental basis" value={rentalBasis} onChange={(e) => setRentalBasis(e.target.value as RentalBasis)}>
+          <option>Daily</option>
+          <option>Hourly</option>
+        </select>
+
+        <select aria-label="Filter by wheels" value={wheelType} onChange={(e) => setWheelType(e.target.value)}>
           <option>All vehicles</option>
           <option>2-Wheeler</option>
           <option>4-Wheeler</option>
         </select>
 
-        <select
-          aria-label="Filter by city"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-        >
+        <select aria-label="Filter by city" value={city} onChange={(e) => setCity(e.target.value)}>
           <option>All locations</option>
-          {["Chennai", "Bengaluru", "Kochi", "Coimbatore", "Hyderabad", "Mumbai"].map(
-            (c) => (
-              <option key={c}>{c}</option>
-            )
-          )}
-        </select>
-
-        <select
-          aria-label="Filter by category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option>All types</option>
-          {(
-            [
-              "Bike",
-              "Scooter",
-              "Hatchback",
-              "Sedan",
-              "SUV",
-              "Electric",
-            ] as VehicleCategory[]
-          ).map((c) => (
+          {["Chennai", "Bengaluru", "Kochi", "Coimbatore", "Hyderabad", "Mumbai"].map((c) => (
             <option key={c}>{c}</option>
           ))}
         </select>
 
-        <select
-          aria-label="Filter by rate"
-          value={rateFilter}
-          onChange={(e) => setRateFilter(e.target.value)}
-        >
-          <option>All rates</option>
-          <option>Under ₹1,000/day</option>
+        <select aria-label="Filter by category" value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option>All types</option>
+          {["Bike", "Scooter", "Hatchback", "Sedan", "SUV", "Electric"].map((c) => (
+            <option key={c}>{c}</option>
+          ))}
         </select>
 
-        <select
-          aria-label="Sort vehicles"
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-        >
+        <select aria-label="Sort vehicles" value={sort} onChange={(e) => setSort(e.target.value)}>
           <option>Recommended</option>
           <option>Price: low to high</option>
           <option>Price: high to low</option>
@@ -215,14 +268,19 @@ function RentContent() {
         </select>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-        }}
-      >
+      <div className="price-filter-card">
+        <PriceRange
+          basis={rentalBasis}
+          min={priceBounds.min}
+          max={priceBounds.max}
+          valueMin={priceMin}
+          valueMax={priceMax}
+          onMinChange={setPriceMin}
+          onMaxChange={setPriceMax}
+        />
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div className="result-count" style={{ marginBottom: 0 }} aria-live="polite">
           <SlidersHorizontal size={12} style={{ display: "inline", marginRight: 7 }} />
           {loading ? "Finding available rides…" : `${list.length} vehicles matching your filters`}
@@ -230,91 +288,37 @@ function RentContent() {
         <button
           type="button"
           onClick={fetchVehicles}
-          style={{
-            background: "none",
-            border: 0,
-            fontSize: 11,
-            fontFamily: "var(--mono)",
-            color: "#6b7280",
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-          }}
+          style={{ background: "none", border: 0, fontSize: 11, fontFamily: "var(--mono)", color: "#6b7280", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
         >
           <RefreshCw size={11} /> Refresh inventory
         </button>
       </div>
 
       {loading ? (
-        <div className="empty-state" role="status">
-          <h3>Finding your next ride…</h3>
-          <p className="muted">Checking the current marketplace inventory.</p>
-        </div>
+        <div className="empty-state" role="status"><h3>Finding your next ride…</h3><p className="muted">Checking the current marketplace inventory.</p></div>
       ) : inventoryError && inventory.length === 0 ? (
-        <div className="empty-state" role="alert">
-          <h3>We couldn’t load the live marketplace.</h3>
-          <p className="muted">
-            Please try refreshing. Example vehicles are hidden until we can confirm there are no live listings.
-          </p>
-        </div>
+        <div className="empty-state" role="alert"><h3>We couldn’t load the live marketplace.</h3><p className="muted">Please try refreshing. Example vehicles are hidden until we can confirm there are no live listings.</p></div>
       ) : list.length ? (
         <div className="vehicle-grid">
-          {list.map((v) => (
-            <VehicleCard key={v.id} vehicle={v} />
-          ))}
+          {list.map((v) => <VehicleCard key={v.id} vehicle={v} rentalBasis={rentalBasis} />)}
         </div>
       ) : inventory.length === 0 ? (
-        <div className="empty-state">
-          <h3>No live vehicles are listed right now.</h3>
-          <p className="muted">
-            Example vehicles below are for display only and cannot be booked.
-          </p>
-        </div>
+        <div className="empty-state"><h3>No live vehicles are listed right now.</h3><p className="muted">Example vehicles below are for display only and cannot be booked.</p></div>
       ) : (
         <div className="empty-state">
           <h3>No vehicles matching your criteria.</h3>
-          <p className="muted">
-            Try adjusting your location, vehicle type or search keywords to view other available options.
-          </p>
-          <button
-            className="button-primary"
-            style={{ marginTop: 15 }}
-            onClick={() => {
-              setQuery("");
-              setCity("All locations");
-              setCategory("All types");
-              setWheelType("All vehicles");
-              setRateFilter("All rates");
-            }}
-          >
-            Clear all filters
-          </button>
+          <p className="muted">Try adjusting your location, vehicle type, rental basis or price range to view other available options.</p>
+          <button className="button-primary" style={{ marginTop: 15 }} onClick={resetFilters}>Clear all filters</button>
         </div>
       )}
       {!loading && !inventoryError && inventory.length === 0 && <DemoVehicleShowcase />}
 
-      {/* FOOTER NOTICE ON REGULATORY COMPLIANCE */}
-      <div
-        style={{
-          marginTop: 40,
-          padding: "18px 22px",
-          background: "#ffffff",
-          border: "1px solid var(--line)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 16,
-        }}
-      >
+      <div style={{ marginTop: 40, padding: "18px 22px", background: "#ffffff", border: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <ShieldCheck size={20} className="text-[#657d24]" />
           <div>
             <div style={{ fontWeight: 700, fontSize: 13 }}>Institutional &amp; Regulatory Standard</div>
-            <p className="muted" style={{ margin: 0 }}>
-              Documentation and safety details vary by listing. Review the information shown for each vehicle and confirm any required documents with the host before booking.
-            </p>
+            <p className="muted" style={{ margin: 0 }}>Documentation and safety details vary by listing. Review the information shown for each vehicle and confirm any required documents with the host before booking.</p>
           </div>
         </div>
       </div>
@@ -324,13 +328,7 @@ function RentContent() {
 
 export default function RentPage() {
   return (
-    <Suspense
-      fallback={
-        <main className="page-shell">
-          <p className="page-intro">Loading verified vehicle fleet…</p>
-        </main>
-      }
-    >
+    <Suspense fallback={<main className="page-shell"><p className="page-intro">Loading verified vehicle fleet…</p></main>}>
       <RentContent />
     </Suspense>
   );
