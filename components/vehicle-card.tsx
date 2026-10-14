@@ -4,8 +4,11 @@ import { ArrowUpRight, Fuel, Gauge, Users, HardHat, ShieldCheck, MapPin } from "
 import type { Vehicle } from "@/lib/data";
 import { money } from "@/lib/data";
 
-export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+type RentalBasis = "Daily" | "Hourly";
+
+export function VehicleCard({ vehicle, rentalBasis = "Daily" }: { vehicle: Vehicle; rentalBasis?: RentalBasis }) {
   const is2Wheeler = vehicle.wheels === "2-Wheeler" || vehicle.category === "Bike" || vehicle.category === "Scooter";
+  const displayPrice = rentalBasis === "Hourly" ? vehicle.hourlyPrice ?? Math.round(vehicle.price / 24) : vehicle.price;
 
   return (
     <article className="vehicle-card">
@@ -63,19 +66,11 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         </h3>
 
         <div className="vehicle-specs">
-          {vehicle.showSeats !== false && (
-            <span><Users size={13} /> {vehicle.seats} seats</span>
-          )}
-          {vehicle.showTransmission !== false && (
-            <span><Gauge size={13} /> {vehicle.transmission}</span>
-          )}
-          {vehicle.showFuel !== false && (
-            <span><Fuel size={13} /> {vehicle.fuel}</span>
-          )}
+          {vehicle.showSeats !== false && <span><Users size={13} /> {vehicle.seats} seats</span>}
+          {vehicle.showTransmission !== false && <span><Gauge size={13} /> {vehicle.transmission}</span>}
+          {vehicle.showFuel !== false && <span><Fuel size={13} /> {vehicle.fuel}</span>}
           {is2Wheeler && (vehicle.helmetIncluded ?? Boolean(vehicle.helmetOption?.includes("Included"))) && (
-            <span style={{ color: "#546e14", fontWeight: 600 }}>
-              <HardHat size={13} /> Helmet Included
-            </span>
+            <span style={{ color: "#546e14", fontWeight: 600 }}><HardHat size={13} /> Helmet Included</span>
           )}
         </div>
 
@@ -85,13 +80,9 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 
         <div className="vehicle-bottom">
           <div className="price">
-            {money(vehicle.price)} <small>/ day</small>
+            {money(displayPrice)} <small>/ {rentalBasis === "Hourly" ? "hour" : "day"}</small>
           </div>
-          <Link
-            className="arrow-link"
-            href={"/rent/vehicle/" + vehicle.id}
-            aria-label={"Explore " + vehicle.name}
-          >
+          <Link className="arrow-link" href={"/rent/vehicle/" + vehicle.id} aria-label={"Explore " + vehicle.name}>
             <ArrowUpRight size={18} />
           </Link>
         </div>
