@@ -174,3 +174,33 @@ export function getDemoHostData(ownerId: string) {
     },
   };
 }
+
+
+export function getDemoAdminData() {
+  const vehicles = seedVehicles;
+  const bookings = readDemoBookings();
+  const totalGrossRevenue = bookings
+    .filter((booking) => booking.status !== "CANCELLED")
+    .reduce((sum, booking) => sum + booking.total, 0);
+  const platformCommissionCollected = bookings
+    .filter((booking) => booking.status !== "CANCELLED")
+    .reduce((sum, booking) => sum + (booking.platformFee || 0), 0);
+
+  return {
+    metrics: {
+      totalVehicles: vehicles.length,
+      pendingVehicles: vehicles.filter((vehicle) => vehicle.status === "pending_review").length,
+      approvedVehicles: vehicles.filter((vehicle) => vehicle.status === "approved").length,
+      totalBookings: bookings.length,
+      totalGrossRevenue,
+      platformCommissionCollected,
+      pendingKycUsers: 0,
+      totalUsers: 0,
+    },
+    vehicles,
+    bookings,
+    users: [],
+    payouts: [],
+    disputes: [],
+  };
+}
