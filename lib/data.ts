@@ -93,6 +93,7 @@ export type Booking = {
   securityDeposit?: number;
   status: BookingStatus;
   guest: string;
+  customerId?: string;
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
