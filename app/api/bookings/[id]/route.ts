@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, BookingStatus } from "@/lib/server/db";
+import { db } from "@/lib/server/db";
 import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
 
 export async function GET(
@@ -36,79 +36,144 @@ export async function PATCH(
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    // 1. Cancellation workflow
     if (action === "cancel") {
-      if (existing.status === "COMPLETED" || existing.status === "CANCELLED") {
+      if (["ACTIVE_TRIP", "RETURNED", "COMPLETED", "CANCELLED"].includes(existing.status)) {
         return NextResponse.json(
-          { error: "Cannot cancel a booking that is already finished or cancelled." },
+          { error: "Only a booking that has not started can be cancelled." },
+          { status: 409 }
+        );
+      }
+
+      const updated = db.updateBookingStatus(id, "CANCELLED", {
+        cancellationReason: reason || "Cancelled via the demo portal",
+      });
+
+      return NextResponse.json({
+        booking: updated,
+        message: "Demo booking cancelled. No payment was processed, so no refund was initiated.",
+        success: true,
+        demo: true,
+      });
+    }
+
+    if (action === "handover") {
+      if (!["CONFIRMED", "HANDOVER_PENDING"].includes(existing.status)) {
+        return NextResponse.json(
+          { error: "Handover is only available for a confirmed booking that has not started." },
+          { status: 409 }
+        );
+      }
+
+      const startingOdometer = Number(handover?.startingOdometer);
+      const helmetsIssued = Number(handover?.helmetsIssued);
+      const fuelBatteryLevel = String(handover?.fuelBatteryLevel || "").trim();
+
+      if (!Number.isFinite(startingOdometer) || startingOdometer < 0) {
+        return NextResponse.json(
+          { error: "Enter the actual starting odometer reading." },
+          { status: 400 }
+        );
+      }
+      if (!fuelBatteryLevel) {
+        return NextResponse.json(
+          { error: "Record the fuel or battery level before handing over the vehicle." },
+          { status: 400 }
+        );
+      }
+      if (!Number.isInteger(helmetsIssued) || helmetsIssued < 0 || helmetsIssued > 4) {
+        return NextResponse.json(
+          { error: "Enter a valid number of helmets issued (0–4)." },
           { status: 400 }
         );
       }
 
-      // Calculate refund according to formal cancellation policy:
-      // If cancelled before start date: Full base amount refunded, nominal processing fee (5%)
-      const refundAmount = Math.max(0, existing.total - Math.round(existing.platformFee * 0.5));
-
-      const updated = db.updateBookingStatus(id, "CANCELLED", {
-        cancellationReason: reason || "Cancelled by user via portal",
-        refundAmount,
-      });
-
-      return NextResponse.json({
-        booking: updated,
-        message: `Booking cancelled. A refund of ₹${refundAmount.toLocaleString("en-IN")} has been initiated to your original payment method.`,
-        success: true,
-      });
-    }
-
-    // 2. Handover workflow (Owner checks in customer, verifies license & odometer)
-    if (action === "handover") {
       const updated = db.updateBookingStatus(id, "ACTIVE_TRIP", {
         handover: {
           handoverTime: new Date().toISOString(),
-          startingOdometer: Number(handover?.startingOdometer) || 10000,
-          fuelBatteryLevel: handover?.fuelBatteryLevel || "100%",
-          helmetsIssued: Number(handover?.helmetsIssued) || 1,
-          licenseInspected: true,
-          handoverNotes: handover?.handoverNotes || "Keys and vehicle handed over in verified condition.",
+          startingOdometer,
+          fuelBatteryLevel,
+          helmetsIssued,
+          licenseInspected: handover?.licenseInspected === true,
+          handoverNotes: String(handover?.handoverNotes || "").trim(),
         },
       });
 
       return NextResponse.json({
         booking: updated,
-        message: "Key handover logged. Trip is now active.",
+        message: "Demo handover recorded. GPS tracking can now be started in the Android app.",
         success: true,
+        demo: true,
       });
     }
 
-    // 3. Return workflow (Owner marks vehicle returned & releases deposit)
     if (action === "return") {
+      if (existing.status !== "ACTIVE_TRIP") {
+        return NextResponse.json(
+          { error: "Only an active trip can be checked in for return." },
+          { status: 409 }
+        );
+      }
+
+      const closingOdometer = Number(returnRecord?.closingOdometer);
+      const startingOdometer = existing.handover?.startingOdometer;
+      const damageObserved = String(returnRecord?.damageObserved || "").trim();
+      const depositDeduction = Number(returnRecord?.depositDeduction ?? 0);
+
+      if (!Number.isFinite(closingOdometer) || closingOdometer < 0) {
+        return NextResponse.json(
+          { error: "Enter the actual closing odometer reading." },
+          { status: 400 }
+        );
+      }
+      if (startingOdometer !== undefined && closingOdometer < startingOdometer) {
+        return NextResponse.json(
+          { error: "Closing odometer cannot be lower than the starting reading." },
+          { status: 400 }
+        );
+      }
+      if (!damageObserved) {
+        return NextResponse.json(
+          { error: "Record the vehicle condition or explicitly enter 'No damage observed'." },
+          { status: 400 }
+        );
+      }
+      if (!Number.isFinite(depositDeduction) || depositDeduction < 0 || depositDeduction > existing.securityDeposit) {
+        return NextResponse.json(
+          { error: "Deposit deduction must be between ₹0 and the listed security deposit." },
+          { status: 400 }
+        );
+      }
+
       const updated = db.updateBookingStatus(id, "COMPLETED", {
         returnRecord: {
           returnTime: new Date().toISOString(),
-          closingOdometer: Number(returnRecord?.closingOdometer) || 10050,
-          damageObserved: returnRecord?.damageObserved || "None. Checked and approved.",
-          depositReleased: true,
-          depositDeduction: Number(returnRecord?.depositDeduction) || 0,
-          depositReleaseNotes: returnRecord?.depositReleaseNotes || "Security deposit released in full.",
+          closingOdometer,
+          damageObserved,
+          // The prototype does not collect or move money. Never claim a real deposit was released.
+          depositReleased: false,
+          depositDeduction,
+          depositReleaseNotes: "Demo record only. No security deposit was collected or released.",
         },
       });
 
       return NextResponse.json({
         booking: updated,
-        message: "Vehicle return complete. Deposit released.",
+        message: "Demo return recorded. No deposit was collected or released.",
         success: true,
+        demo: true,
       });
     }
 
-    // 4. Direct status transition if specified
     if (status) {
-      const updated = db.updateBookingStatus(id, status as BookingStatus);
-      return NextResponse.json({ booking: updated, success: true });
+      return NextResponse.json(
+        { error: "Direct status changes are disabled. Use the relevant booking workflow action." },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (err) {
+    console.error("Booking update error:", err);
     return NextResponse.json({ error: "Failed to update booking" }, { status: 500 });
   }
 }
