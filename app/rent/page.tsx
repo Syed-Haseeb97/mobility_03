@@ -2,7 +2,16 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, SlidersHorizontal, ShieldCheck, HardHat, RefreshCw } from "lucide-react";
+import {
+  ArrowDownUp,
+  Check,
+  ChevronDown,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+  SlidersHorizontal,
+  Sparkles,
+} from "lucide-react";
 import { seedVehicles, type Vehicle, type VehicleCategory } from "@/lib/data";
 import { VehicleCard } from "@/components/vehicle-card";
 import { DemoVehicleShowcase } from "@/components/demo-vehicle-showcase";
@@ -14,18 +23,27 @@ function RentContent() {
   const initialStart = searchParams.get("start") || "";
   const initialEnd = searchParams.get("end") || "";
 
-  const [inventory, setInventory] = useState<Vehicle[]>(
-    false ? [] : seedVehicles
-  );
+  const [inventory, setInventory] = useState<Vehicle[]>(seedVehicles);
   const [loading, setLoading] = useState(true);
   const [inventoryError, setInventoryError] = useState(false);
-
   const [query, setQuery] = useState("");
   const [city, setCity] = useState(initialCity === "" ? "All locations" : initialCity);
   const [category, setCategory] = useState("All types");
   const [wheelType, setWheelType] = useState(initialWheels);
-  const [rateFilter, setRateFilter] = useState("All rates");
   const [sort, setSort] = useState("Recommended");
+  const [minPriceFilter, setMinPriceFilter] = useState<number | null>(null);
+  const [maxPriceFilter, setMaxPriceFilter] = useState<number | null>(null);
+
+  const priceBounds = useMemo(() => {
+    const prices = inventory.map((vehicle) => Number(vehicle.price) || 0).filter((price) => price >= 0);
+    if (!prices.length) return { min: 0, max: 5000 };
+    const min = Math.floor(Math.min(...prices) / 100) * 100;
+    const max = Math.max(min + 100, Math.ceil(Math.max(...prices) / 100) * 100);
+    return { min, max };
+  }, [inventory]);
+
+  const selectedMin = minPriceFilter ?? priceBounds.min;
+  const selectedMax = maxPriceFilter ?? priceBounds.max;
 
   const fetchVehicles = async () => {
     setLoading(true);
@@ -37,50 +55,26 @@ function RentContent() {
       const queryString = params.toString();
       const res = await fetch(queryString ? `/api/vehicles?${queryString}` : "/api/vehicles");
       if (!res.ok) throw new Error(`Vehicle inventory request failed (${res.status})`);
-
       const data = await res.json();
-      if (!Array.isArray(data.vehicles)) {
-        throw new Error("Vehicle inventory response did not include a vehicles array");
-      }
+      if (!Array.isArray(data.vehicles)) throw new Error("Vehicle inventory response did not include a vehicles array");
 
-      // An empty API result is real: do not replace it with seed inventory.
       const formatted: Vehicle[] = data.vehicles.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        make: v.make,
-        category: v.category,
-        wheels: v.wheels,
-        city: v.city,
-        campusZone: v.campusZone,
-        pickupAddress: v.pickupAddress,
-        price: v.price,
-        hourlyPrice: v.hourlyPrice,
-        deposit: v.deposit,
-        seats: v.seats,
-        transmission: v.transmission,
-        fuel: v.fuel,
-        year: v.year,
-        rating: v.rating || 5,
-        trips: v.trips || 0,
-        image: v.image,
-        description: v.description,
-        host: v.ownerName || "Vehicle host",
-        ownerId: v.ownerId,
-        registrationNumber: v.registrationNumber,
-        insuranceValidTill: v.insuranceValidTill,
-        rcVerified: v.rcVerified ?? false,
-        insuranceVerified: v.insuranceVerified ?? false,
-        helmetOption: v.helmetOption,
-        helmetCondition: v.helmetCondition,
-        guidelines: v.guidelines,
-        hostNotes: v.hostNotes,
-        status: v.status,
+        id: v.id, name: v.name, make: v.make, category: v.category, wheels: v.wheels,
+        city: v.city, campusZone: v.campusZone, pickupAddress: v.pickupAddress,
+        price: v.price, hourlyPrice: v.hourlyPrice, deposit: v.deposit, seats: v.seats,
+        transmission: v.transmission, fuel: v.fuel, year: v.year, rating: v.rating || 5,
+        trips: v.trips || 0, image: v.image, description: v.description,
+        host: v.ownerName || "Vehicle host", ownerId: v.ownerId,
+        registrationNumber: v.registrationNumber, insuranceValidTill: v.insuranceValidTill,
+        rcVerified: v.rcVerified ?? false, insuranceVerified: v.insuranceVerified ?? false,
+        helmetOption: v.helmetOption, helmetCondition: v.helmetCondition,
+        guidelines: v.guidelines, hostNotes: v.hostNotes, status: v.status,
       }));
       setInventory(formatted);
     } catch (err) {
       console.warn("Unable to load vehicle inventory", err);
       setInventoryError(true);
-      setInventory(false ? [] : seedVehicles);
+      setInventory(seedVehicles);
     } finally {
       setLoading(false);
     }
@@ -90,248 +84,106 @@ function RentContent() {
     fetchVehicles();
   }, []);
 
-  const list = useMemo(
-    () =>
-      inventory
-        .filter((v) => {
-          const textMatches = [v.name, v.make, v.city, v.campusZone || "", v.category, v.wheels || ""]
-            .join(" ")
-            .toLowerCase()
-            .includes(query.toLowerCase());
+  const list = useMemo(() => inventory
+    .filter((v) => {
+      const textMatches = [v.name, v.make, v.city, v.campusZone || "", v.category, v.wheels || ""]
+        .join(" ").toLowerCase().includes(query.trim().toLowerCase());
+      const cityMatches = city === "All locations" || v.city.toLowerCase() === city.toLowerCase();
+      const categoryMatches = category === "All types" || v.category === category;
+      const wheelMatches = wheelType === "All vehicles" || v.wheels === wheelType;
+      const priceMatches = v.price >= selectedMin && v.price <= selectedMax;
+      return textMatches && cityMatches && categoryMatches && wheelMatches && priceMatches;
+    })
+    .sort((a, b) => sort === "Price: low to high" ? a.price - b.price
+      : sort === "Price: high to low" ? b.price - a.price
+      : sort === "Top Rated" ? b.rating - a.rating
+      : (b.rating * 10 + b.trips) - (a.rating * 10 + a.trips)),
+  [inventory, query, city, category, wheelType, selectedMin, selectedMax, sort]);
 
-          const cityMatches = city === "All locations" || v.city.toLowerCase() === city.toLowerCase();
-          const catMatches = category === "All types" || v.category === category;
-          const wheelMatches = wheelType === "All vehicles" || v.wheels === wheelType;
-          const rateMatches =
-            rateFilter === "All rates" ||
-            (rateFilter === "Under ₹1,000/day" && v.price < 1000);
+  const hasFilters = Boolean(query || city !== "All locations" || category !== "All types"
+    || wheelType !== "All vehicles" || minPriceFilter !== null || maxPriceFilter !== null);
 
-          return textMatches && cityMatches && catMatches && wheelMatches && rateMatches;
-        })
-        .sort((a, b) =>
-          sort === "Price: low to high"
-            ? a.price - b.price
-            : sort === "Price: high to low"
-            ? b.price - a.price
-            : sort === "Top Rated"
-            ? b.rating - a.rating
-            : b.rating * 10 + b.trips - (a.rating * 10 + a.trips)
-        ),
-    [inventory, query, city, category, wheelType, rateFilter, sort]
-  );
+  const clearFilters = () => {
+    setQuery("");
+    setCity("All locations");
+    setCategory("All types");
+    setWheelType("All vehicles");
+    setMinPriceFilter(null);
+    setMaxPriceFilter(null);
+    setSort("Recommended");
+  };
 
   return (
-    <main className="page-shell">
-      <div className="page-top">
-        <div>
-          <div className="eyebrow">Explore the marketplace</div>
-          <h1 className="page-heading">
-            Find your kind
-            <br />
-            of drive.
-          </h1>
+    <main className="page-shell rent-marketplace">
+      <div className="rent-intro">
+        <div className="rent-intro-copy">
+          <div className="eyebrow"><span className="rent-live-dot" /> Explore the marketplace</div>
+          <h1 className="page-heading">Find your kind<br /><span>of drive.</span></h1>
+          <p className="page-intro">The right ride, at the right price. Fine-tune your search and discover bikes, scooters and cars that fit your day.</p>
+          <div className="rent-intro-proof"><span><Check size={14} /> Clear daily pricing</span><span><Check size={14} /> Compare in seconds</span></div>
         </div>
-        <p className="page-intro">
-          Browse bikes, scooters and cars by city, vehicle type and price. Check each listing’s pickup details, documentation status and rental terms before you decide.
-        </p>
+        <div className="rent-intro-art" aria-hidden="true">
+          <div className="rent-art-orbit rent-art-orbit-a" />
+          <div className="rent-art-orbit rent-art-orbit-b" />
+          <div className="rent-art-label"><Sparkles size={14} /> THE MOBILITY EDIT</div>
+          <div className="rent-art-number">01<span> / DISCOVER</span></div>
+          <div className="rent-art-caption">Your next trip<br />starts here.</div>
+        </div>
       </div>
 
-      <div className="filter-bar">
-        <label style={{ position: "relative", flex: "1 1 240px" }}>
-          <Search
-            size={16}
-            style={{ position: "absolute", left: 13, top: 14, color: "#85877c" }}
-          />
-          <input
-            aria-label="Search vehicles"
-            placeholder="Search make, model, zone, or city"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            style={{ width: "100%", paddingLeft: 39 }}
-          />
-        </label>
+      <section className="market-filter-panel" aria-label="Filter and sort vehicles">
+        <div className="market-filter-heading">
+          <div><span className="market-filter-kicker">MAKE IT YOURS</span><h2>Find your fit<span>.</span></h2></div>
+          <button type="button" className="market-reset-button" onClick={clearFilters} disabled={!hasFilters && sort === "Recommended"}><RotateCcw size={14} /> Reset filters</button>
+        </div>
 
-        <select
-          aria-label="Filter by wheels"
-          value={wheelType}
-          onChange={(e) => setWheelType(e.target.value)}
-        >
-          <option>All vehicles</option>
-          <option>2-Wheeler</option>
-          <option>4-Wheeler</option>
-        </select>
+        <div className="market-search-row">
+          <label className="market-search-field">
+            <Search size={17} />
+            <input aria-label="Search vehicles" placeholder="Search make, model, zone or city…" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <kbd>⌕</kbd>
+          </label>
+          <label className="market-sort-field"><ArrowDownUp size={15} /><span className="sr-only">Sort vehicles</span>
+            <select aria-label="Sort vehicles" value={sort} onChange={(e) => setSort(e.target.value)}>
+              <option>Recommended</option><option>Price: low to high</option><option>Price: high to low</option><option>Top Rated</option>
+            </select><ChevronDown size={14} />
+          </label>
+        </div>
 
-        <select
-          aria-label="Filter by city"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-        >
-          <option>All locations</option>
-          {["Chennai", "Bengaluru", "Kochi", "Coimbatore", "Hyderabad", "Mumbai"].map(
-            (c) => (
-              <option key={c}>{c}</option>
-            )
-          )}
-        </select>
+        <div className="market-filter-grid">
+          <label className="market-select-field"><span>Vehicle type</span><select aria-label="Filter by wheels" value={wheelType} onChange={(e) => setWheelType(e.target.value)}><option>All vehicles</option><option>2-Wheeler</option><option>4-Wheeler</option></select></label>
+          <label className="market-select-field"><span>Category</span><select aria-label="Filter by category" value={category} onChange={(e) => setCategory(e.target.value)}><option>All types</option>{(["Bike", "Scooter", "Hatchback", "Sedan", "SUV", "Electric"] as VehicleCategory[]).map((c) => <option key={c}>{c}</option>)}</select></label>
+          <label className="market-select-field"><span>Pickup location</span><select aria-label="Filter by city" value={city} onChange={(e) => setCity(e.target.value)}><option>All locations</option>{["Chennai", "Bengaluru", "Kochi", "Coimbatore", "Hyderabad", "Mumbai"].map((c) => <option key={c}>{c}</option>)}</select></label>
+        </div>
 
-        <select
-          aria-label="Filter by category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option>All types</option>
-          {(
-            [
-              "Bike",
-              "Scooter",
-              "Hatchback",
-              "Sedan",
-              "SUV",
-              "Electric",
-            ] as VehicleCategory[]
-          ).map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
+        <div className="market-price-filter">
+          <div className="market-price-heading"><div><span className="market-filter-kicker">YOUR BUDGET</span><h3>Daily price range</h3></div><div className="market-price-value">₹{selectedMin.toLocaleString("en-IN")} <span>—</span> ₹{selectedMax.toLocaleString("en-IN")}<small> / day</small></div></div>
+          <div className="market-range-inputs">
+            <span className="market-range-selected" aria-hidden="true" style={{ left: `${priceBounds.max === priceBounds.min ? 0 : ((selectedMin - priceBounds.min) / (priceBounds.max - priceBounds.min)) * 100}%`, width: `${priceBounds.max === priceBounds.min ? 100 : ((selectedMax - selectedMin) / (priceBounds.max - priceBounds.min)) * 100}%` }} />
+            <input aria-label="Minimum daily price" type="range" min={priceBounds.min} max={priceBounds.max} step="50" value={Math.min(selectedMin, selectedMax)} onChange={(e) => { const value = Number(e.target.value); setMinPriceFilter(Math.min(value, selectedMax)); }} style={{ "--range-progress": `${priceBounds.max === priceBounds.min ? 0 : ((selectedMin - priceBounds.min) / (priceBounds.max - priceBounds.min)) * 100}%` } as React.CSSProperties} />
+            <input aria-label="Maximum daily price" type="range" min={priceBounds.min} max={priceBounds.max} step="50" value={Math.max(selectedMax, selectedMin)} onChange={(e) => { const value = Number(e.target.value); setMaxPriceFilter(Math.max(value, selectedMin)); }} style={{ "--range-progress": `${priceBounds.max === priceBounds.min ? 100 : ((selectedMax - priceBounds.min) / (priceBounds.max - priceBounds.min)) * 100}%` } as React.CSSProperties} />
+          </div>
+          <div className="market-range-labels"><span>₹{priceBounds.min.toLocaleString("en-IN")}</span><span>₹{priceBounds.max.toLocaleString("en-IN")}+</span></div>
+        </div>
+      </section>
 
-        <select
-          aria-label="Filter by rate"
-          value={rateFilter}
-          onChange={(e) => setRateFilter(e.target.value)}
-        >
-          <option>All rates</option>
-          <option>Under ₹1,000/day</option>
-        </select>
-
-        <select
-          aria-label="Sort vehicles"
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-        >
-          <option>Recommended</option>
-          <option>Price: low to high</option>
-          <option>Price: high to low</option>
-          <option>Top Rated</option>
-        </select>
+      <div className="market-results-toolbar">
+        <div><span className="market-results-eyebrow">THE LINEUP</span><p aria-live="polite">{loading ? "Finding available rides…" : <><strong>{list.length}</strong> {list.length === 1 ? "ride" : "rides"} matching your search</>}</p></div>
+        <div className="market-results-actions">{hasFilters && <span className="market-filter-active"><span /> Filters active</span>}<button type="button" onClick={fetchVehicles} disabled={loading} className="market-refresh-button"><RotateCcw size={13} className={loading ? "market-spin" : ""} /> Refresh</button></div>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-        }}
-      >
-        <div className="result-count" style={{ marginBottom: 0 }} aria-live="polite">
-          <SlidersHorizontal size={12} style={{ display: "inline", marginRight: 7 }} />
-          {loading ? "Finding available rides…" : `${list.length} vehicles matching your filters`}
-        </div>
-        <button
-          type="button"
-          onClick={fetchVehicles}
-          style={{
-            background: "none",
-            border: 0,
-            fontSize: 11,
-            fontFamily: "var(--mono)",
-            color: "#6b7280",
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-          }}
-        >
-          <RefreshCw size={11} /> Refresh inventory
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="empty-state" role="status">
-          <h3>Finding your next ride…</h3>
-          <p className="muted">Checking the current marketplace inventory.</p>
-        </div>
-      ) : inventoryError && inventory.length === 0 ? (
-        <div className="empty-state" role="alert">
-          <h3>We couldn’t load the live marketplace.</h3>
-          <p className="muted">
-            Please try refreshing. Example vehicles are hidden until we can confirm there are no live listings.
-          </p>
-        </div>
-      ) : list.length ? (
-        <div className="vehicle-grid">
-          {list.map((v) => (
-            <VehicleCard key={v.id} vehicle={v} />
-          ))}
-        </div>
-      ) : inventory.length === 0 ? (
-        <div className="empty-state">
-          <h3>No live vehicles are listed right now.</h3>
-          <p className="muted">
-            Example vehicles below are for display only and cannot be booked.
-          </p>
-        </div>
-      ) : (
-        <div className="empty-state">
-          <h3>No vehicles matching your criteria.</h3>
-          <p className="muted">
-            Try adjusting your location, vehicle type or search keywords to view other available options.
-          </p>
-          <button
-            className="button-primary"
-            style={{ marginTop: 15 }}
-            onClick={() => {
-              setQuery("");
-              setCity("All locations");
-              setCategory("All types");
-              setWheelType("All vehicles");
-              setRateFilter("All rates");
-            }}
-          >
-            Clear all filters
-          </button>
-        </div>
-      )}
+      {loading ? <div className="market-loading-state" role="status"><div className="market-loading-orbit"><span /></div><h3>Finding your next ride</h3><p>Matching the details to your plans…</p></div>
+      : inventoryError && inventory.length === 0 ? <div className="empty-state" role="alert"><h3>We couldn’t load the live marketplace.</h3><p className="muted">Please try refreshing. Example vehicles are hidden until we can confirm there are no live listings.</p></div>
+      : list.length ? <div className="vehicle-grid market-vehicle-grid">{list.map((v, i) => <div className="market-card-reveal" key={v.id} style={{ "--card-index": i } as React.CSSProperties}><VehicleCard vehicle={v} /></div>)}</div>
+      : inventory.length === 0 ? <div className="empty-state"><h3>No live vehicles are listed right now.</h3><p className="muted">Example vehicles below are for display only and cannot be booked.</p></div>
+      : <div className="market-empty-state"><div className="market-empty-icon"><Search size={22} /></div><h3>No rides in this range. Yet.</h3><p>Try widening your budget or clearing a filter to bring more options into view.</p><button className="button-primary" onClick={clearFilters}>Clear all filters <RotateCcw size={14} /></button></div>}
       {!loading && !inventoryError && inventory.length === 0 && <DemoVehicleShowcase />}
 
-      {/* FOOTER NOTICE ON REGULATORY COMPLIANCE */}
-      <div
-        style={{
-          marginTop: 40,
-          padding: "18px 22px",
-          background: "#ffffff",
-          border: "1px solid var(--line)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 16,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <ShieldCheck size={20} className="text-[#657d24]" />
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 13 }}>Institutional &amp; Regulatory Standard</div>
-            <p className="muted" style={{ margin: 0 }}>
-              Documentation and safety details vary by listing. Review the information shown for each vehicle and confirm any required documents with the host before booking.
-            </p>
-          </div>
-        </div>
-      </div>
+      <div className="market-trust-note"><div className="market-trust-icon"><ShieldCheck size={21} /></div><div><strong>Know before you go.</strong><p>Documentation and safety details vary by listing. Review each vehicle’s information and confirm required documents with the host before booking.</p></div><span className="market-trust-mark">MOBILITY / VERIFIED DETAILS</span></div>
     </main>
   );
 }
 
 export default function RentPage() {
-  return (
-    <Suspense
-      fallback={
-        <main className="page-shell">
-          <p className="page-intro">Loading verified vehicle fleet…</p>
-        </main>
-      }
-    >
-      <RentContent />
-    </Suspense>
-  );
+  return <Suspense fallback={<main className="page-shell"><p className="page-intro">Loading vehicle fleet…</p></main>}><RentContent /></Suspense>;
 }
