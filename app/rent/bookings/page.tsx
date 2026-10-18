@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { money, type Booking } from "@/lib/data";
 import { useSession } from "@/components/session-provider";
+import { readDemoBookings, updateDemoBooking } from "@/lib/demo-client-store";
 
 export default function BookingsPage() {
   const { currentUser } = useSession();
@@ -47,6 +48,8 @@ export default function BookingsPage() {
       if (res.ok) {
         const data = await res.json();
         setItems(data.bookings || []);
+      } else if (res.status === 503) {
+        setItems(readDemoBookings().filter((booking) => booking.customerId === customerId));
       }
     } catch (err) {
       console.error("Failed to load customer bookings:", err);
@@ -70,7 +73,17 @@ export default function BookingsPage() {
         body: JSON.stringify({ action: "cancel", reason: "Cancelled by customer via personal portal" }),
       });
       const data = await res.json();
-      if (res.ok) {
+      if (res.status === 503) {
+        const updated = updateDemoBooking(id, "cancel", {
+          reason: "Cancelled by customer in the local demo",
+        });
+        if (!updated) {
+          alert("This demo booking can no longer be cancelled.");
+          return;
+        }
+        setActionNotice("Demo booking cancelled on this device. No payment or refund was processed.");
+        fetchBookings();
+      } else if (res.ok) {
         setActionNotice(data.message || "Booking successfully cancelled.");
         fetchBookings();
       } else {
