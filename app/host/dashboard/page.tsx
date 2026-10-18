@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { money, type Booking, type Vehicle } from "@/lib/data";
 import { useSession } from "@/components/session-provider";
+import { getDemoHostData, updateDemoBooking } from "@/lib/demo-client-store";
 
 export default function HostDashboard() {
   const { currentUser } = useSession();
@@ -71,6 +72,8 @@ export default function HostDashboard() {
       if (res.ok) {
         const json = await res.json();
         setData(json);
+      } else if (res.status === 503) {
+        setData(getDemoHostData(ownerId));
       }
     } catch (err) {
       console.error("Failed to load host stats:", err);
@@ -101,7 +104,21 @@ export default function HostDashboard() {
           },
         }),
       });
-      if (res.ok) {
+      if (res.status === 503) {
+        const updated = updateDemoBooking(handoverBooking.id, "handover", {
+          handover: {
+            startingOdometer: Number(startingOdo),
+            fuelBatteryLevel: fuelBattery,
+            helmetsIssued: Number(helmetsGiven),
+            licenseInspected,
+            handoverNotes,
+          },
+        });
+        if (!updated) {
+          alert("The demo handover could not be saved. Check the licence confirmation and inspection fields.");
+          return;
+        }
+        setPayoutNotice("Demo handover saved on this device. No payment or real-world authorization was performed.");
         setHandoverBooking(null);
         setStartingOdo("");
         setFuelBattery("");
@@ -109,6 +126,17 @@ export default function HostDashboard() {
         setLicenseInspected(false);
         setHandoverNotes("");
         fetchHostData();
+      } else if (res.ok) {
+        setHandoverBooking(null);
+        setStartingOdo("");
+        setFuelBattery("");
+        setHelmetsGiven("1");
+        setLicenseInspected(false);
+        setHandoverNotes("");
+        fetchHostData();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Unable to record handover.");
       }
     } catch {
       alert("Error logging handover");
@@ -131,9 +159,30 @@ export default function HostDashboard() {
           },
         }),
       });
-      if (res.ok) {
+      if (res.status === 503) {
+        const updated = updateDemoBooking(returnBooking.id, "return", {
+          returnRecord: {
+            closingOdometer: Number(closingOdo),
+            damageObserved: damageNotes,
+          },
+        });
+        if (!updated) {
+          alert("The demo return could not be saved. Check the odometer and condition fields.");
+          return;
+        }
+        setPayoutNotice("Demo return saved on this device. No security deposit was collected or released.");
         setReturnBooking(null);
+        setClosingOdo("");
+        setDamageNotes("");
         fetchHostData();
+      } else if (res.ok) {
+        setReturnBooking(null);
+        setClosingOdo("");
+        setDamageNotes("");
+        fetchHostData();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Unable to record vehicle return.");
       }
     } catch {
       alert("Error completing vehicle return");
