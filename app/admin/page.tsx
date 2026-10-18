@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { money } from "@/lib/data";
 import { useSession } from "@/components/session-provider";
+import { getDemoAdminData } from "@/lib/demo-client-store";
 
 export default function AdminPage() {
   const { currentUser, switchUser } = useSession();
@@ -36,6 +37,8 @@ export default function AdminPage() {
       if (res.ok) {
         const json = await res.json();
         setData(json);
+      } else if (res.status === 503) {
+        setData(getDemoAdminData());
       }
     } catch (err) {
       console.error("Failed to load admin data:", err);
@@ -119,8 +122,10 @@ export default function AdminPage() {
             Administration.
           </h1>
           <p className="page-intro">
-            Role-restricted control center for auditing regulatory compliance, authenticating
-            partner documentation, approving listings, and managing financial settlement reconciliations.
+            Demo operations dashboard for reviewing the marketplace, sample bookings and fleet status.
+          </p>
+          <p className="page-intro" style={{ fontSize: 11, marginTop: 10 }}>
+            Demo only · Records stay in this browser or app. No identity checks, payments, payouts or real administrative authorization are performed.
           </p>
         </div>
 
