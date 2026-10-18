@@ -22,7 +22,8 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { money, daysBetween, type Vehicle } from "@/lib/data";
+import { money, daysBetween, seedVehicles, type Vehicle } from "@/lib/data";
+import { createDemoBooking } from "@/lib/demo-client-store";
 import { useSession } from "@/components/session-provider";
 import { getIndiaDateString, nextDateString } from "@/lib/date-utils";
 
@@ -78,8 +79,15 @@ export default function VehicleDetail() {
             return;
           }
         }
+
+        // The unfunded production preview deliberately blocks server mutations.
+        // Use the checked-in demo catalogue for read-only vehicle detail pages.
+        const demoVehicle = seedVehicles.find((item) => item.id === params.id);
+        if (demoVehicle) setVehicle(demoVehicle);
       } catch (err) {
-        console.error("Failed to load vehicle from API:", err);
+        console.error("Failed to load vehicle from API; using local demo catalogue:", err);
+        const demoVehicle = seedVehicles.find((item) => item.id === params.id);
+        if (demoVehicle) setVehicle(demoVehicle);
       } finally {
         setLoading(false);
       }
@@ -182,20 +190,37 @@ export default function VehicleDetail() {
       });
 
       const data = await res.json();
+      let booking = data.booking;
 
       if (!res.ok) {
-        setBookingNotice({
-          type: "error",
-          message: data.error || "Unable to confirm booking. Please try again.",
-        });
-        setSubmitting(false);
-        return;
+        if (res.status === 503) {
+          // Browser-local demo mode lets the funding demo complete without pretending
+          // that server-side persistence or payment processing is configured.
+          booking = createDemoBooking({
+            vehicle,
+            customerId: currentUser?.id || "usr-cust-1",
+            customerName: guestName.trim(),
+            customerEmail: email.trim(),
+            customerPhone: phone.trim(),
+            drivingLicense: drivingLicense.trim().toUpperCase(),
+            start,
+            end,
+            paymentMethod,
+            helmetOptionSelected: helmetOption,
+          });
+        } else {
+          setBookingNotice({
+            type: "error",
+            message: data.error || "Unable to create booking. Please try again.",
+          });
+          return;
+        }
       }
 
       setBookingNotice({
         type: "success",
-        message: `Demo booking created. Reference: ${data.booking.id}. No real payment was processed; the displayed total is for demonstration only.`,
-        bookingId: data.booking.id,
+        message: `Demo booking created. Reference: ${booking.id}. No real payment was processed; this demo booking is saved only in this browser or app.`,
+        bookingId: booking.id,
       });
 
       // When opened inside the MOBILITY Android app, offer to carry this exact
@@ -203,7 +228,7 @@ export default function VehicleDetail() {
       const mobilityAndroid = (window as Window & {
         MobilityAndroid?: { onBookingCreated?: (bookingId: string) => void };
       }).MobilityAndroid;
-      mobilityAndroid?.onBookingCreated?.(data.booking.id);
+      mobilityAndroid?.onBookingCreated?.(booking.id);
 
       // Clear dates
       setStart("");
