@@ -44,15 +44,16 @@ export default function HostDashboard() {
 
   // Handover modal state
   const [handoverBooking, setHandoverBooking] = useState<Booking | null>(null);
-  const [startingOdo, setStartingOdo] = useState("12500");
-  const [fuelBattery, setFuelBattery] = useState("100%");
+  const [startingOdo, setStartingOdo] = useState("");
+  const [fuelBattery, setFuelBattery] = useState("");
   const [helmetsGiven, setHelmetsGiven] = useState("1");
-  const [handoverNotes, setHandoverNotes] = useState("Vehicle clean, helmet provided, DL checked.");
+  const [licenseInspected, setLicenseInspected] = useState(false);
+  const [handoverNotes, setHandoverNotes] = useState("");
 
   // Return modal state
   const [returnBooking, setReturnBooking] = useState<Booking | null>(null);
-  const [closingOdo, setClosingOdo] = useState("12620");
-  const [damageNotes, setDamageNotes] = useState("None, clean return.");
+  const [closingOdo, setClosingOdo] = useState("");
+  const [damageNotes, setDamageNotes] = useState("");
 
   // Payout request modal state
   const [showPayoutModal, setShowPayoutModal] = useState(false);
@@ -95,12 +96,18 @@ export default function HostDashboard() {
             startingOdometer: Number(startingOdo),
             fuelBatteryLevel: fuelBattery,
             helmetsIssued: Number(helmetsGiven),
+            licenseInspected,
             handoverNotes,
           },
         }),
       });
       if (res.ok) {
         setHandoverBooking(null);
+        setStartingOdo("");
+        setFuelBattery("");
+        setHelmetsGiven("1");
+        setLicenseInspected(false);
+        setHandoverNotes("");
         fetchHostData();
       }
     } catch {
@@ -622,32 +629,50 @@ export default function HostDashboard() {
                 <label>
                   Fuel / Battery Charge Level
                   <select
+                    required
                     value={fuelBattery}
                     onChange={(e) => setFuelBattery(e.target.value)}
                   >
-                    <option>100% Full</option>
-                    <option>75% Level</option>
-                    <option>50% Level</option>
+                    <option value="" disabled>Select recorded level</option>
+                    <option value="100% Full">100% Full</option>
+                    <option value="75% Level">75% Level</option>
+                    <option value="50% Level">50% Level</option>
+                    <option value="25% Level">25% Level</option>
+                    <option value="EV battery level recorded">EV battery level recorded</option>
                   </select>
                 </label>
 
                 <label>
                   ISI Certified Helmets Issued
                   <select
+                    required
                     value={helmetsGiven}
                     onChange={(e) => setHelmetsGiven(e.target.value)}
                   >
-                    <option>1 Certified Helmet</option>
-                    <option>2 Certified Helmets</option>
-                    <option>0 (Customer brought verified helmet / 4-Wheeler)</option>
+                    <option value="1">1 Certified Helmet</option>
+                    <option value="2">2 Certified Helmets</option>
+                    <option value="0">0 (Customer brought verified helmet / 4-Wheeler)</option>
                   </select>
+                </label>
+
+                <label style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <input
+                    type="checkbox"
+                    required
+                    checked={licenseInspected}
+                    onChange={(e) => setLicenseInspected(e.target.checked)}
+                    style={{ width: 18, height: 18, marginTop: 2 }}
+                  />
+                  <span>I physically inspected the renter’s valid driving licence.</span>
                 </label>
 
                 <label>
                   Handover Inspection Notes
                   <input
+                    required
                     value={handoverNotes}
                     onChange={(e) => setHandoverNotes(e.target.value)}
+                    placeholder="Record visible condition, keys and accessories"
                   />
                 </label>
               </div>
@@ -713,8 +738,10 @@ export default function HostDashboard() {
                 <label>
                   Vehicle Condition &amp; Damage Inspection
                   <input
+                    required
                     value={damageNotes}
                     onChange={(e) => setDamageNotes(e.target.value)}
+                    placeholder="Enter “No damage observed” or describe damage"
                   />
                 </label>
 
@@ -727,8 +754,7 @@ export default function HostDashboard() {
                     color: "#3f5018",
                   }}
                 >
-                  ✓ Security deposit of {money(returnBooking.securityDeposit || 500)} will be
-                  automatically marked released to customer.
+                  Demo only: no payment or security deposit was collected. This checklist does not release real funds.
                 </div>
               </div>
 
