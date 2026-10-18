@@ -80,6 +80,12 @@ export async function PATCH(
           { status: 400 }
         );
       }
+      if (handover?.licenseInspected !== true) {
+        return NextResponse.json(
+          { error: "Confirm that the renter’s driving licence was physically inspected." },
+          { status: 400 }
+        );
+      }
       if (!Number.isInteger(helmetsIssued) || helmetsIssued < 0 || helmetsIssued > 4) {
         return NextResponse.json(
           { error: "Enter a valid number of helmets issued (0–4)." },
