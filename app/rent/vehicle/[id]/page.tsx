@@ -236,7 +236,7 @@ export default function VehicleDetail() {
     } catch (err) {
       setBookingNotice({
         type: "error",
-        message: "A network error occurred while booking. Please try again.",
+        message: err instanceof Error ? err.message : "A network error occurred while booking. Please try again.",
       });
     } finally {
       setSubmitting(false);
