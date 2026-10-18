@@ -13,7 +13,7 @@ Mobility is a campus-first vehicle rental marketplace prototype for college camp
 - **Formal Automotive Identity:** Replaced all sensationalist and informal toy gimmicks (such as *"mileage king"*, burnout animations, wheelie simulations, and synthesizer horns) with an executive, institutional inspection studio featuring 3D perspective parallax, technical dimension sheets, and regulatory verification status.
 - **Dynamic Owner-Authored Listings:** Every listing features descriptions, pickup guidelines, and usage terms written directly by the host who lists the vehicle for rent.
 - **Prototype persistence:** Uses a server-side JSON store (`data/mobility-store.json`) for local demos. This is not a substitute for a transactional managed database in a multi-instance production deployment.
-- **Three Authenticated Application Roles:**
+- **Three Prototype Application Roles:**
   - **Customer / Renter:** Discover vehicles by campus zone, review listing details, provide booking information, and explore the intended rental flow. The current booking flow is a demo and does not process real payments.
   - **Vehicle Owner / Rental Partner:** Listing builder, live preview, garage management, and prototype handover/return and earnings screens. Production access requires server-enforced owner authorization and a real settlement integration.
   - **Platform Administrator:** Prototype operations screens for listing review, KYC status, bookings, and payouts. Production access requires authenticated administrator authorization and auditable workflows.
@@ -38,7 +38,7 @@ Mobility is a campus-first vehicle rental marketplace prototype for college camp
 
 ## 3. Technology Stack
 
-- **Framework:** Next.js 15 (App Router, Server Actions & API Routes)
+- **Framework:** Next.js 16.4.0 (App Router, Server Actions & API Routes)
 - **UI & State:** React 19, TypeScript 5.8
 - **Styling:** Tailwind CSS v4, PostCSS, Custom DM Mono & Manrope Typography
 - **Graphics & 3D Parallax:** Three.js, Lucide Icons
@@ -85,9 +85,10 @@ Open [http://localhost:3000](http://localhost:3000) in your web browser.
 ## 6. Production readiness and demo limitations
 
 - The local prototype supports persona switching and seeded records for demonstrations only; they are not real authentication or live inventory.
-- Production uses an empty in-memory view instead of the checked-in demo JSON store and refuses writes until a real database adapter is connected. Sensitive booking, review, admin, owner/payout, session mutation, and vehicle mutation endpoints are intentionally blocked until server-side authentication/authorization and required provider integrations are configured.
+- Local development and preview deployments may use the seeded prototype store. An unconfigured Vercel production deployment is intentionally empty and blocks sensitive mutations until a real database, authentication/authorization, and required provider integrations are configured.
+- `MOBILITY_DEMO_MODE=true` is an explicit opt-in for a public demo deployment that needs seeded inventory. It must not be used as the production configuration for a real rental service.
+- Public production vehicle browsing exposes only approved listings. New vehicle listings start in `pending_review` and are not automatically marked as verified.
 - Demo bookings do not process payment; a displayed booking or payment status must not be treated as a real financial transaction.
-- New vehicle listings start in `pending_review` and are not automatically marked as verified.
 - Before a public launch, review every API route for authentication, role and resource ownership checks; migrate JSON storage to a transactional database; integrate a payment provider with verified webhooks/idempotency; and validate the actual RC/insurance evidence process.
 
 ## 7. Safety controls to implement and verify
