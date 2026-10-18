@@ -34,6 +34,16 @@ function writeDemoBookings(bookings: Booking[]) {
 
 export function createDemoBooking(input: DemoBookingInput): Booking {
   const { vehicle } = input;
+  const existingBookings = readDemoBookings();
+  const hasOverlap = existingBookings.some((booking) =>
+    booking.vehicleId === vehicle.id &&
+    !["CANCELLED", "COMPLETED"].includes(booking.status) &&
+    input.start <= booking.end &&
+    input.end >= booking.start
+  );
+  if (hasOverlap) {
+    throw new Error("This vehicle already has a demo booking for overlapping dates. Choose another date range or vehicle.");
+  }
   const rentalDays = daysBetween(input.start, input.end);
   const baseTotal = vehicle.price * rentalDays;
   const isTwoWheeler = vehicle.wheels === "2-Wheeler";
