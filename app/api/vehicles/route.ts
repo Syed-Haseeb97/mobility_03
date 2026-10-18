@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, VehicleListingStatus } from "@/lib/server/db";
-import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
+import { blockUnconfiguredProductionAccess, isProductionEnvironment } from "@/lib/server/production-safety";
 import { getIndiaDateString, isDateOnly } from "@/lib/date-utils";
 
 export async function GET(request: Request) {
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const city = searchParams.get("city") || undefined;
     const category = searchParams.get("category") || undefined;
     const wheels = searchParams.get("wheels") || undefined;
-    const isProduction = false;
+    const isProduction = isProductionEnvironment();
     const ownerId = isProduction ? undefined : searchParams.get("ownerId") || undefined;
     const statusParam = isProduction ? undefined : searchParams.get("status") as VehicleListingStatus | undefined;
     const search = searchParams.get("search") || undefined;
@@ -25,7 +25,8 @@ export async function GET(request: Request) {
       }
     }
 
-    // For public browse, default to 'approved'. If ownerId or admin specified, allow viewing other statuses
+    // Public production browse may only expose approved vehicles.
+    // Owner/status filtering remains available to local and preview demo flows.
     const status = statusParam || (ownerId ? undefined : "approved");
 
     let vehicles = db.getVehicles({
@@ -36,6 +37,11 @@ export async function GET(request: Request) {
       status,
       search,
     });
+
+    // Unconfigured production must not expose checked-in demo inventory.
+    if (isProduction) {
+      vehicles = [];
+    }
 
     if (start && end) {
       vehicles = vehicles.filter((vehicle) => db.checkAvailability(vehicle.id, start, end));
@@ -155,7 +161,7 @@ export async function POST(request: Request) {
       description: description.trim(),
       hostNotes: hostNotes || "Handover against valid driving license.",
       guidelines: guidelines || "Follow designated campus speed limits and wear protective helmet.",
-      status: "pending_review", // New listings must be reviewed before public booking
+      status: "pending_review",
     });
 
     return NextResponse.json({ vehicle: newVehicle, success: true }, { status: 201 });

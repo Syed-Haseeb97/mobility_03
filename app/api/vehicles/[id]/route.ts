@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
-import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
+import { blockUnconfiguredProductionAccess, isProductionEnvironment } from "@/lib/server/production-safety";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+
+  // Unconfigured production must not expose the checked-in demo store at all.
+  // This keeps direct-ID lookups consistent with the production browse endpoint.
+  if (isProductionEnvironment()) {
+    return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
+  }
+
   const vehicle = db.getVehicleById(id);
 
   if (!vehicle) {
