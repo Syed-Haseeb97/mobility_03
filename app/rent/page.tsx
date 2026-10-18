@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { seedVehicles, type Vehicle, type VehicleCategory } from "@/lib/data";
+import { readDemoBookings } from "@/lib/demo-client-store";
 import { VehicleCard } from "@/components/vehicle-card";
 import { DemoVehicleShowcase } from "@/components/demo-vehicle-showcase";
 
@@ -71,8 +72,16 @@ function RentContent() {
         guidelines: v.guidelines, hostNotes: v.hostNotes, status: v.status,
       }));
       // Unconfigured production intentionally returns no server inventory.
-      // Keep the public preview browsable with the checked-in demo catalogue.
-      setInventory(formatted.length === 0 && !initialStart && !initialEnd ? seedVehicles : formatted);
+      // Keep the preview browsable using local demo bookings for date conflicts.
+      const fallbackVehicles = seedVehicles.filter((vehicle) =>
+        !initialStart || !initialEnd || !readDemoBookings().some((booking) =>
+          booking.vehicleId === vehicle.id &&
+          !["CANCELLED", "COMPLETED"].includes(booking.status) &&
+          initialStart <= booking.end &&
+          initialEnd >= booking.start
+        )
+      );
+      setInventory(formatted.length === 0 ? fallbackVehicles : formatted);
     } catch (err) {
       console.warn("Unable to load vehicle inventory", err);
       setInventoryError(true);
