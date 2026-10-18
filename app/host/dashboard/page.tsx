@@ -247,8 +247,10 @@ export default function HostDashboard() {
             {currentUser?.businessName || currentUser?.name || "Host Studio"}.
           </h1>
           <p className="page-intro">
-            Comprehensive command center for vehicle listings, active trip handovers,
-            rental revenue breakdown, and institutional settlements.
+            Demo command center for vehicle listings, trip handovers, return inspections and fleet status.
+          </p>
+          <p className="page-intro" style={{ fontSize: 11, marginTop: 10 }}>
+            Demo only · Booking changes are saved in this browser or app. No payment, deposit release or payout is processed.
           </p>
         </div>
 
