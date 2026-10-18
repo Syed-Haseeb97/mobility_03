@@ -198,6 +198,13 @@ export default function VehicleDetail() {
         bookingId: data.booking.id,
       });
 
+      // When opened inside the MOBILITY Android app, offer to carry this exact
+      // booking reference into native trip tracking. Ordinary browsers are unchanged.
+      const mobilityAndroid = (window as Window & {
+        MobilityAndroid?: { onBookingCreated?: (bookingId: string) => void };
+      }).MobilityAndroid;
+      mobilityAndroid?.onBookingCreated?.(data.booking.id);
+
       // Clear dates
       setStart("");
       setEnd("");
