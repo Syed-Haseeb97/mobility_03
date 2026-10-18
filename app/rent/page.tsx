@@ -70,7 +70,9 @@ function RentContent() {
         helmetOption: v.helmetOption, helmetCondition: v.helmetCondition,
         guidelines: v.guidelines, hostNotes: v.hostNotes, status: v.status,
       }));
-      setInventory(formatted);
+      // Unconfigured production intentionally returns no server inventory.
+      // Keep the public preview browsable with the checked-in demo catalogue.
+      setInventory(formatted.length === 0 && !initialStart && !initialEnd ? seedVehicles : formatted);
     } catch (err) {
       console.warn("Unable to load vehicle inventory", err);
       setInventoryError(true);
@@ -121,6 +123,7 @@ function RentContent() {
           <h1 className="page-heading">Find your kind<br /><span>of drive.</span></h1>
           <p className="page-intro">The right ride, at the right price. Fine-tune your search and discover bikes, scooters and cars that fit your day.</p>
           <div className="rent-intro-proof"><span><Check size={14} /> Clear daily pricing</span><span><Check size={14} /> Compare in seconds</span></div>
+          <p className="page-intro" style={{ fontSize: 11, marginTop: 14 }}>Demo preview · Bookings and trip updates stay on this device. No real payments or deposits are processed.</p>
         </div>
         <div className="rent-intro-art" aria-hidden="true">
           <div className="rent-art-orbit rent-art-orbit-a" />
