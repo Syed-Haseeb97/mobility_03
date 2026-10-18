@@ -159,8 +159,10 @@ export default function BookingsPage() {
             Reservations.
           </h1>
           <p className="page-intro" style={{ marginTop: 14 }}>
-            Monitor scheduled pickups, retrieve tax invoices and receipts, inspect handover
-            details, and manage cancellation policies.
+            Review your demo reservations, handover details and completed trip records.
+          </p>
+          <p className="page-intro" style={{ fontSize: 11, marginTop: 10 }}>
+            Demo only · Records stay in this browser or app. No real payments, refunds or deposits are processed.
           </p>
         </div>
 
