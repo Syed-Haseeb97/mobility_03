@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
-import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
+import { blockUnconfiguredProductionAccess, isProductionEnvironment } from "@/lib/server/production-safety";
 
 export async function GET(
   request: Request,
@@ -9,7 +9,7 @@ export async function GET(
   const { id } = await params;
   const vehicle = db.getVehicleById(id);
 
-  if (!vehicle) {
+  if (!vehicle || (isProductionEnvironment() && vehicle.status !== "approved")) {
     return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
   }
 
