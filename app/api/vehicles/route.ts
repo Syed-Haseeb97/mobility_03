@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, VehicleListingStatus } from "@/lib/server/db";
-import { blockUnconfiguredProductionAccess, isProductionEnvironment } from "@/lib/server/production-safety";
+import { blockUnconfiguredProductionAccess, isDeployedProduction, isProductionEnvironment } from "@/lib/server/production-safety";
 import { getIndiaDateString, isDateOnly } from "@/lib/date-utils";
 
 export async function GET(request: Request) {
@@ -10,8 +10,9 @@ export async function GET(request: Request) {
     const category = searchParams.get("category") || undefined;
     const wheels = searchParams.get("wheels") || undefined;
     const isProduction = isProductionEnvironment();
-    const ownerId = isProduction ? undefined : searchParams.get("ownerId") || undefined;
-    const statusParam = isProduction ? undefined : searchParams.get("status") as VehicleListingStatus | undefined;
+    const isDeployed = isDeployedProduction();
+    const ownerId = isDeployed ? undefined : searchParams.get("ownerId") || undefined;
+    const statusParam = isDeployed ? undefined : searchParams.get("status") as VehicleListingStatus | undefined;
     const search = searchParams.get("search") || undefined;
     const start = searchParams.get("start") || undefined;
     const end = searchParams.get("end") || undefined;
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
 
     // Public production browse may only expose approved vehicles.
     // Owner/status filtering remains available to local and preview demo flows.
-    const status = statusParam || (ownerId ? undefined : "approved");
+    const status = isDeployed ? "approved" : statusParam || (ownerId ? undefined : "approved");
 
     let vehicles = db.getVehicles({
       city,
@@ -47,7 +48,19 @@ export async function GET(request: Request) {
       vehicles = vehicles.filter((vehicle) => db.checkAvailability(vehicle.id, start, end));
     }
 
-    return NextResponse.json({ vehicles, count: vehicles.length });
+    const publicVehicles = vehicles.map((vehicle) => {
+      const {
+        registrationNumber: _registrationNumber,
+        pickupAddress: _pickupAddress,
+        addressLine1: _addressLine1,
+        addressLine2: _addressLine2,
+        pinCode: _pinCode,
+        ownerId: _ownerId,
+        ...publicVehicle
+      } = vehicle;
+      return publicVehicle;
+    });
+    return NextResponse.json({ vehicles: publicVehicles, count: publicVehicles.length });
   } catch (err) {
     return NextResponse.json({ error: "Failed to fetch vehicles" }, { status: 500 });
   }

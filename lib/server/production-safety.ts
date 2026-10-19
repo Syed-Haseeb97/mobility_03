@@ -2,15 +2,25 @@
  * Production safety boundary for the prototype.
  *
  * Local development and preview deployments may use the seeded demo store.
- * Production is fail-closed unless an operator explicitly opts into the
- * public demo with MOBILITY_DEMO_MODE=true.
+ * Sensitive production APIs are always fail-closed until real auth and
+ * provider integrations exist. The demo flag only permits public inventory.
  */
 export function isProductionEnvironment() {
-  return process.env.VERCEL_ENV === "production" && process.env.MOBILITY_DEMO_MODE !== "true";
+  return isDeployedProduction() && process.env.MOBILITY_DEMO_MODE !== "true";
+}
+
+export function isDeployedProduction() {
+  return process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+}
+
+export function isPublicDemoMode() {
+  return isDeployedProduction() && process.env.MOBILITY_DEMO_MODE === "true";
 }
 
 export function blockUnconfiguredProductionAccess(capability: string) {
-  if (!isProductionEnvironment()) return null;
+  // MOBILITY_DEMO_MODE is a public inventory preview only. It must never
+  // unlock APIs that expose accounts, bookings, financials, or mutations.
+  if (!isDeployedProduction()) return null;
 
   return new Response(
     JSON.stringify({

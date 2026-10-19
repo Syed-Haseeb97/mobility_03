@@ -56,6 +56,9 @@ export async function POST(request: Request) {
 
     // 1. Moderate vehicle listing
     if (action === "moderateVehicle") {
+      if (!["approved", "pending_review", "inactive", "rejected"].includes(status)) {
+        return NextResponse.json({ error: "Invalid vehicle moderation status." }, { status: 400 });
+      }
       const updated = db.setVehicleStatus(vehicleId, status, reason);
       if (!updated) {
         return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
@@ -69,6 +72,9 @@ export async function POST(request: Request) {
 
     // 2. Moderate user KYC
     if (action === "moderateKyc") {
+      if (!["verified", "pending", "unverified"].includes(status)) {
+        return NextResponse.json({ error: "Invalid KYC status." }, { status: 400 });
+      }
       const updated = db.updateUserKyc(userId, status);
       if (!updated) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });

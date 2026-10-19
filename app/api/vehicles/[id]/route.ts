@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
-import { blockUnconfiguredProductionAccess, isProductionEnvironment } from "@/lib/server/production-safety";
+import { blockUnconfiguredProductionAccess, isProductionEnvironment, isPublicDemoMode } from "@/lib/server/production-safety";
 
 export async function GET(
   request: Request,
@@ -19,8 +19,24 @@ export async function GET(
   if (!vehicle) {
     return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
   }
+  if (isPublicDemoMode() && vehicle.status !== "approved") {
+    return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
+  }
 
-  return NextResponse.json({ vehicle });
+  return NextResponse.json({ vehicle: toPublicVehicle(vehicle) });
+}
+
+function toPublicVehicle(vehicle: NonNullable<ReturnType<typeof db.getVehicleById>>) {
+  const {
+    registrationNumber: _registrationNumber,
+    pickupAddress: _pickupAddress,
+    addressLine1: _addressLine1,
+    addressLine2: _addressLine2,
+    pinCode: _pinCode,
+    ownerId: _ownerId,
+    ...publicVehicle
+  } = vehicle;
+  return publicVehicle;
 }
 
 export async function PUT(
@@ -33,8 +49,25 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
+    const editableFields = [
+      "name", "make", "year", "category", "wheels", "city", "campusZone",
+      "pickupAddress", "addressLine1", "addressLine2", "state", "country",
+      "pinCode", "price", "hourlyPrice", "deposit", "seats", "transmission",
+      "fuel", "helmetOption", "helmetCondition", "image", "additionalPhotos",
+      "showPickupAddress", "showTransmission", "showFuel", "showSeats",
+      "helmetIncluded", "description", "hostNotes", "guidelines",
+    ] as const;
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "A vehicle update object is required." }, { status: 400 });
+    }
+    const updates = Object.fromEntries(
+      Object.entries(body).filter(([key]) => (editableFields as readonly string[]).includes(key))
+    );
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: "No editable vehicle fields were provided." }, { status: 400 });
+    }
 
-    const updated = db.updateVehicle(id, body);
+    const updated = db.updateVehicle(id, updates);
     if (!updated) {
       return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
     }

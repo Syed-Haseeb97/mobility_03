@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
 import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
 
+function toSafeProfile(profile: NonNullable<ReturnType<typeof db.getUserById>>) {
+  const { drivingLicense: _drivingLicense, bankUpi: _bankUpi, ...safe } = profile;
+  return safe;
+}
+
 // Default active session in cookies or header, or fallback to customer
 export async function GET(request: Request) {
-  if (false) {
-    return NextResponse.json({ user: null, availableUsers: [] });
-  }
+  const blocked = blockUnconfiguredProductionAccess("Session and account records");
+  if (blocked) return blocked;
 
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId") || "usr-cust-1";
@@ -14,8 +18,8 @@ export async function GET(request: Request) {
   const allUsers = db.getUsers();
 
   return NextResponse.json({
-    user,
-    availableUsers: allUsers,
+    user: user ? toSafeProfile(user) : null,
+    availableUsers: allUsers.map(toSafeProfile),
   });
 }
 
@@ -32,12 +36,14 @@ export async function POST(request: Request) {
       if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
-      return NextResponse.json({ user, success: true });
+      return NextResponse.json({ user: toSafeProfile(user), success: true });
     }
 
     if (action === "updateKyc") {
-      const updated = db.updateUserKyc(userId, updates.status, updates.docType);
-      return NextResponse.json({ user: updated, success: true });
+      return NextResponse.json(
+        { error: "KYC status can only be changed through the admin moderation workflow." },
+        { status: 403 }
+      );
     }
 
     if (action === "updateProfile") {
@@ -45,8 +51,15 @@ export async function POST(request: Request) {
       if (!current) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
-      const updated = db.saveUser({ ...current, ...updates });
-      return NextResponse.json({ user: updated, success: true });
+      if (!updates || typeof updates !== "object" || Array.isArray(updates)) {
+        return NextResponse.json({ error: "Profile updates must be an object." }, { status: 400 });
+      }
+      const allowedFields = ["name", "email", "phone", "avatar", "campusAffiliation"] as const;
+      const safeUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([key]) => (allowedFields as readonly string[]).includes(key))
+      );
+      const updated = db.saveUser({ ...current, ...safeUpdates });
+      return NextResponse.json({ user: toSafeProfile(updated), success: true });
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
