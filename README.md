@@ -85,11 +85,11 @@ Open [http://localhost:3000](http://localhost:3000) in your web browser.
 ## 6. Production readiness and demo limitations
 
 - The local prototype supports persona switching and seeded records for demonstrations only; they are not real authentication or live inventory.
-- Local development and preview deployments may use the seeded prototype store. An unconfigured Vercel production deployment is intentionally empty and blocks sensitive mutations until a real database, authentication/authorization, and required provider integrations are configured.
-- `MOBILITY_DEMO_MODE=true` is an explicit opt-in for a public demo deployment that needs seeded inventory. It must not be used as the production configuration for a real rental service.
+- Only local development uses the interactive seeded prototype store. Deployed builds block sensitive APIs until real authentication/authorization and required provider integrations are configured.
+- `MOBILITY_DEMO_MODE=true` is an explicit opt-in for public vehicle inventory previews in deployed environments. It does not enable sessions, bookings, owner/admin records, payouts, or other sensitive APIs. Do not put personal or live operational data in a public demo store.
 - Public production vehicle browsing exposes only approved listings. New vehicle listings start in `pending_review` and are not automatically marked as verified.
 - Demo bookings do not process payment; a displayed booking or payment status must not be treated as a real financial transaction.
-- Before a public launch, review every API route for authentication, role and resource ownership checks; migrate JSON storage to a transactional database; integrate a payment provider with verified webhooks/idempotency; and validate the actual RC/insurance evidence process.
+- Before a public launch, configure a real identity provider and server-enforced role/resource ownership checks; migrate JSON storage to a transactional database; integrate a payment provider with verified webhooks/idempotency; and validate the actual RC/insurance evidence process. These integrations are not included in this prototype.
 
 ## 7. Safety controls to implement and verify
 

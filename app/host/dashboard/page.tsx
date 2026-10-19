@@ -612,7 +612,7 @@ export default function HostDashboard() {
                       <div>
                         <div style={{ fontWeight: 700, fontSize: 13 }}>{p.id} · {p.payoutMethod}</div>
                         <div className="muted" style={{ fontSize: 11, marginTop: 3 }}>
-                          UTR: {p.utrNumber || "TRANSFERRED"} · {p.destinationAccount} · {p.createdAt.slice(0, 10)}
+                          {p.utrNumber ? `UTR: ${p.utrNumber}` : "Demo request · no funds transferred"} · {p.createdAt.slice(0, 10)}
                         </div>
                       </div>
                       <div style={{ textAlign: "right" }}>

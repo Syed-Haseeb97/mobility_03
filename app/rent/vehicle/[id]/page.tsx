@@ -329,7 +329,7 @@ export default function VehicleDetail() {
               >
                 <ShieldCheck size={14} className="text-[#c8ff3a]" />
                 <span>
-                  Official Registration Plate: <strong>{vehicle.registrationNumber}</strong>
+                  Registration details are shared with a confirmed renter when needed.
                 </span>
               </div>
             )}
@@ -401,7 +401,7 @@ export default function VehicleDetail() {
                 <div>
                   <strong>Pickup address</strong>
                   <p className="muted" style={{ margin: "2px 0 0" }}>
-                    {[vehicle.addressLine1 || vehicle.pickupAddress, vehicle.addressLine2, vehicle.city, vehicle.state, vehicle.country, vehicle.pinCode].filter(Boolean).join(", ") || "Pickup details will be confirmed with the host."}
+                    {[vehicle.campusZone, vehicle.city, vehicle.state, vehicle.country].filter(Boolean).join(", ") || "Pickup details will be confirmed with the host after booking."}
                   </p>
                 </div>
               </div>
@@ -482,7 +482,7 @@ export default function VehicleDetail() {
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 12 }}>Registration Certificate</div>
                   <div className="muted" style={{ fontSize: 11 }}>
-                    RC Plate: {vehicle.registrationNumber}
+                    Registration details shared after booking
                   </div>
                 </div>
               </div>

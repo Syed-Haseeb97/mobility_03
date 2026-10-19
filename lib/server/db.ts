@@ -703,10 +703,9 @@ const SEED_PAYOUTS: PayoutRecord[] = [
     amount: 2200,
     platformCommission: 220,
     netSettlement: 1980,
-    status: "PROCESSED",
+    status: "PENDING",
     payoutMethod: "UPI Settlement",
     destinationAccount: "cornerstone@oksbi",
-    utrNumber: "UTR-AXIS-2026100988112",
     createdAt: "2026-10-10T09:00:00Z",
   },
 ];
@@ -755,7 +754,7 @@ function saveDatabase(data: DatabaseStore) {
   }
 }
 
-// Thread-safe / In-process database helper functions
+// In-process demo database helpers. This store is not safe for multi-instance use.
 export const db = {
   getStore(): DatabaseStore {
     return loadDatabase();
@@ -905,7 +904,8 @@ export const db = {
     return loadDatabase().bookings.find((b) => b.id === id);
   },
 
-  // Check for reservation concurrency / date conflicts
+  // Date ranges are half-open: a booking ending on a date does not occupy
+  // that date, so a new booking may begin on the previous booking's end date.
   checkAvailability(
     vehicleId: string,
     start: string,
@@ -913,10 +913,8 @@ export const db = {
     excludeBookingId?: string
   ): boolean {
     const data = loadDatabase();
-    const targetStart = new Date(start + "T00:00:00").getTime();
-    const targetEnd = new Date(end + "T23:59:59").getTime();
-
-    // Check if vehicle has any overlapping confirmed/active bookings
+    // Check all non-cancelled reservations. Date-only ISO values compare
+    // lexicographically and avoid server-local timezone interpretation.
     const active = data.bookings.filter(
       (b) =>
         b.vehicleId === vehicleId &&
@@ -926,10 +924,8 @@ export const db = {
     );
 
     for (const b of active) {
-      const bStart = new Date(b.start + "T00:00:00").getTime();
-      const bEnd = new Date(b.end + "T23:59:59").getTime();
-      // Overlap condition: start <= bEnd && end >= bStart
-      if (targetStart <= bEnd && targetEnd >= bStart) {
+      // Overlap condition for [start, end): start < b.end && end > b.start
+      if (start < b.end && end > b.start) {
         return false; // overlapping!
       }
     }
@@ -1047,10 +1043,10 @@ export const db = {
       amount,
       platformCommission,
       netSettlement,
-      status: "PROCESSED",
+      // The prototype records a request only; it never transfers funds.
+      status: "PENDING",
       payoutMethod,
       destinationAccount,
-      utrNumber: "UTR-IMPS-" + Date.now().toString().slice(-8),
       createdAt: new Date().toISOString(),
     };
     data.payouts.unshift(payout);
