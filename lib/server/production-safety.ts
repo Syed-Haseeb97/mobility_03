@@ -6,21 +6,21 @@
  * provider integrations exist. The demo flag only permits public inventory.
  */
 export function isProductionEnvironment() {
-  return isDeployedProduction() && process.env.MOBILITY_DEMO_MODE !== "true";
+  return isDeployedEnvironment() && !isPublicDemoMode();
 }
 
-export function isDeployedProduction() {
-  return process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+export function isDeployedEnvironment() {
+  return Boolean(process.env.VERCEL_ENV) || process.env.NODE_ENV === "production";
 }
 
 export function isPublicDemoMode() {
-  return isDeployedProduction() && process.env.MOBILITY_DEMO_MODE === "true";
+  return isDeployedEnvironment() && process.env.MOBILITY_DEMO_MODE === "true";
 }
 
 export function blockUnconfiguredProductionAccess(capability: string) {
   // MOBILITY_DEMO_MODE is a public inventory preview only. It must never
   // unlock APIs that expose accounts, bookings, financials, or mutations.
-  if (!isDeployedProduction()) return null;
+  if (!isDeployedEnvironment()) return null;
 
   return new Response(
     JSON.stringify({

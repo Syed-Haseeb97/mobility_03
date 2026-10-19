@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
-import { blockUnconfiguredProductionAccess, isProductionEnvironment, isPublicDemoMode } from "@/lib/server/production-safety";
+import { blockUnconfiguredProductionAccess, isDeployedEnvironment, isProductionEnvironment, isPublicDemoMode } from "@/lib/server/production-safety";
 
 export async function GET(
   request: Request,
@@ -19,7 +19,7 @@ export async function GET(
   if (!vehicle) {
     return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
   }
-  if (isPublicDemoMode() && vehicle.status !== "approved") {
+  if (isDeployedEnvironment() && (!isPublicDemoMode() || vehicle.status !== "approved")) {
     return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
   }
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, VehicleListingStatus } from "@/lib/server/db";
-import { blockUnconfiguredProductionAccess, isDeployedProduction, isProductionEnvironment } from "@/lib/server/production-safety";
+import { blockUnconfiguredProductionAccess, isDeployedEnvironment, isProductionEnvironment } from "@/lib/server/production-safety";
 import { getIndiaDateString, isDateOnly } from "@/lib/date-utils";
 
 export async function GET(request: Request) {
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const category = searchParams.get("category") || undefined;
     const wheels = searchParams.get("wheels") || undefined;
     const isProduction = isProductionEnvironment();
-    const isDeployed = isDeployedProduction();
+    const isDeployed = isDeployedEnvironment();
     const ownerId = isDeployed ? undefined : searchParams.get("ownerId") || undefined;
     const statusParam = isDeployed ? undefined : searchParams.get("status") as VehicleListingStatus | undefined;
     const search = searchParams.get("search") || undefined;
