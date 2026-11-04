@@ -145,7 +145,10 @@
       "hostNotes": "Pickup from North Gate parking kiosk. Valid two-wheeler driving license required at handover. Fuel level is recorded at handover and must be returned with equal level.",
       "guidelines": "Helmet mandatory at all times. Pillion rider must wear a certified helmet. Maximum speed limit inside campus grounds is 25 km/h.",
       "status": "approved",
-      "createdAt": "2026-09-01T08:00:00Z"
+      "createdAt": "2026-09-01T08:00:00Z",
+      "latitude": 12.9915,
+      "longitude": 80.2337,
+      "campusZoneId": "chennai-north-gate"
     },
     {
       "id": "v2",
@@ -179,7 +182,10 @@
       "hostNotes": "Handover available daily between 7:30 AM and 8:30 PM. Instant verification with student ID and original DL.",
       "guidelines": "Strictly no stunt riding or reckless maneuvers. Vehicle is equipped with standard telemetry for safety compliance.",
       "status": "approved",
-      "createdAt": "2026-09-05T09:30:00Z"
+      "createdAt": "2026-09-05T09:30:00Z",
+      "latitude": 12.9344,
+      "longitude": 77.6056,
+      "campusZoneId": "blr-hostel-d"
     },
     {
       "id": "v3",
@@ -213,7 +219,10 @@
       "hostNotes": "Original physical driving license must be inspected upon key collection. Full vehicle inspection sheet signed before departure.",
       "guidelines": "Dual helmets included and required. Adhere strictly to state highway and institutional speed regulations.",
       "status": "approved",
-      "createdAt": "2026-09-10T11:00:00Z"
+      "createdAt": "2026-09-10T11:00:00Z",
+      "latitude": 10.0435,
+      "longitude": 76.3242,
+      "campusZoneId": "kochi-west-promenade"
     },
     {
       "id": "v4",
@@ -247,7 +256,10 @@
       "hostNotes": "Vehicle is issued at 100% state of charge. Free charging available at the CleanRide charging dock at the East Library Plaza.",
       "guidelines": "Please return with at least 20% state of charge. Helmet required for operator and passenger.",
       "status": "approved",
-      "createdAt": "2026-09-12T14:15:00Z"
+      "createdAt": "2026-09-12T14:15:00Z",
+      "latitude": 11.0168,
+      "longitude": 76.9558,
+      "campusZoneId": "cbe-library-approach"
     },
     {
       "id": "v5",
@@ -280,7 +292,10 @@
       "hostNotes": "Clean interior with sanitized touchpoints. Spare tire and toolkit checked in rear compartment.",
       "guidelines": "Seatbelts mandatory for all 4 occupants. No smoking or consumption inside vehicle.",
       "status": "approved",
-      "createdAt": "2026-09-15T10:00:00Z"
+      "createdAt": "2026-09-15T10:00:00Z",
+      "latitude": 11.028,
+      "longitude": 76.936,
+      "campusZoneId": "cbe-hostel-quarter"
     },
     {
       "id": "v6",
@@ -313,7 +328,10 @@
       "hostNotes": "Fastag enabled on windshield for toll highways. Fastag recharge settled upon return.",
       "guidelines": "Valid 4-wheeler (LMV) driving license with minimum 1 year validity required. Commercial trip logging applies.",
       "status": "approved",
-      "createdAt": "2026-09-18T16:00:00Z"
+      "createdAt": "2026-09-18T16:00:00Z",
+      "latitude": 13.0184,
+      "longitude": 77.567,
+      "campusZoneId": "blr-admin-ring"
     },
     {
       "id": "v7",
@@ -346,7 +364,10 @@
       "hostNotes": "Requires experienced manual 4WD operator. Pre-rental damage map recorded with photos.",
       "guidelines": "Off-road driving must comply with designated trails only. Zero alcohol policy strictly enforced.",
       "status": "approved",
-      "createdAt": "2026-09-20T12:00:00Z"
+      "createdAt": "2026-09-20T12:00:00Z",
+      "latitude": 10.0435,
+      "longitude": 76.3242,
+      "campusZoneId": "kochi-west-promenade"
     },
     {
       "id": "v8",
@@ -379,7 +400,10 @@
       "hostNotes": "Includes 24/7 roadside assistance package. Full tank handover option available.",
       "guidelines": "LMV driving license mandatory. Please return in clean condition to avoid detailing fee.",
       "status": "approved",
-      "createdAt": "2026-09-22T08:30:00Z"
+      "createdAt": "2026-09-22T08:30:00Z",
+      "latitude": 12.9915,
+      "longitude": 80.2337,
+      "campusZoneId": "chennai-north-gate"
     }
   ],
   "bookings": [

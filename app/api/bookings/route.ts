@@ -44,6 +44,12 @@ export async function POST(request: Request) {
       end,
       helmetOptionSelected,
       paymentMethod,
+      dropoffZone,
+      dropoffAddress,
+      dropoffLat,
+      dropoffLng,
+      routeDistanceKm,
+      estimatedDurationMins,
     } = body;
 
     // 1. Validation
@@ -131,6 +137,14 @@ export async function POST(request: Request) {
       city: vehicle.city,
       pickupZone: vehicle.campusZone,
       pickupAddress: vehicle.pickupAddress,
+      pickupLat: vehicle.latitude,
+      pickupLng: vehicle.longitude,
+      dropoffZone: dropoffZone || vehicle.campusZone,
+      dropoffAddress: dropoffAddress || vehicle.pickupAddress,
+      dropoffLat: typeof dropoffLat === "number" ? dropoffLat : vehicle.latitude,
+      dropoffLng: typeof dropoffLng === "number" ? dropoffLng : vehicle.longitude,
+      routeDistanceKm: typeof routeDistanceKm === "number" ? routeDistanceKm : undefined,
+      estimatedDurationMins: typeof estimatedDurationMins === "number" ? estimatedDurationMins : undefined,
 
       customerId: customerId || "usr-cust-1",
       customerName: customerName.trim(),

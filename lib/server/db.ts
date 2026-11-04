@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { CAMPUS_ZONES } from "../campus-zones";
 
 export type UserRole = "customer" | "owner" | "admin";
 
@@ -48,6 +49,9 @@ export interface VehicleRecord {
   city: string;
   campusZone: string;
   pickupAddress: string;
+  latitude?: number;
+  longitude?: number;
+  campusZoneId?: string;
   addressLine1?: string;
   addressLine2?: string;
   state?: string;
@@ -130,6 +134,14 @@ export interface BookingRecord {
   city: string;
   pickupZone: string;
   pickupAddress: string;
+  pickupLat?: number;
+  pickupLng?: number;
+  dropoffZone?: string;
+  dropoffAddress?: string;
+  dropoffLat?: number;
+  dropoffLng?: number;
+  routeDistanceKm?: number;
+  estimatedDurationMins?: number;
 
   // Customer info
   customerId: string;
@@ -303,6 +315,9 @@ const SEED_VEHICLES: VehicleRecord[] = [
   // --- 2-WHEELERS ---
   {
     id: "v1",
+    latitude: 12.9915,
+    longitude: 80.2337,
+    campusZoneId: "chennai-north-gate",
     ownerId: "usr-host-1",
     ownerName: "Ramesh Sundaram (Juniper Hire)",
     ownerType: "commercial_rental",
@@ -340,6 +355,9 @@ const SEED_VEHICLES: VehicleRecord[] = [
   },
   {
     id: "v2",
+    latitude: 12.9344,
+    longitude: 77.6056,
+    campusZoneId: "blr-hostel-d",
     ownerId: "usr-host-2",
     ownerName: "Karthik Venkatesh (Cornerstone)",
     ownerType: "commercial_rental",
@@ -377,6 +395,9 @@ const SEED_VEHICLES: VehicleRecord[] = [
   },
   {
     id: "v3",
+    latitude: 10.0435,
+    longitude: 76.3242,
+    campusZoneId: "kochi-west-promenade",
     ownerId: "usr-host-3",
     ownerName: "Anand Nair (Cedar Lane)",
     ownerType: "commercial_rental",
@@ -414,6 +435,9 @@ const SEED_VEHICLES: VehicleRecord[] = [
   },
   {
     id: "v4",
+    latitude: 11.0168,
+    longitude: 76.9558,
+    campusZoneId: "cbe-library-approach",
     ownerId: "usr-host-4",
     ownerName: "Pooja Sharma (CleanRide EV)",
     ownerType: "commercial_rental",
@@ -453,6 +477,9 @@ const SEED_VEHICLES: VehicleRecord[] = [
   // --- 4-WHEELERS ---
   {
     id: "v5",
+    latitude: 11.028,
+    longitude: 76.936,
+    campusZoneId: "cbe-hostel-quarter",
     ownerId: "usr-host-4",
     ownerName: "Pooja Sharma (CleanRide)",
     ownerType: "individual",
@@ -489,6 +516,9 @@ const SEED_VEHICLES: VehicleRecord[] = [
   },
   {
     id: "v6",
+    latitude: 13.0184,
+    longitude: 77.567,
+    campusZoneId: "blr-admin-ring",
     ownerId: "usr-host-2",
     ownerName: "Karthik Venkatesh (Cornerstone)",
     ownerType: "commercial_rental",
@@ -525,6 +555,9 @@ const SEED_VEHICLES: VehicleRecord[] = [
   },
   {
     id: "v7",
+    latitude: 10.0435,
+    longitude: 76.3242,
+    campusZoneId: "kochi-west-promenade",
     ownerId: "usr-host-3",
     ownerName: "Anand Nair (Cedar Lane)",
     ownerType: "commercial_rental",
@@ -561,6 +594,9 @@ const SEED_VEHICLES: VehicleRecord[] = [
   },
   {
     id: "v8",
+    latitude: 12.9915,
+    longitude: 80.2337,
+    campusZoneId: "chennai-north-gate",
     ownerId: "usr-host-1",
     ownerName: "Ramesh Sundaram (Juniper Hire)",
     ownerType: "commercial_rental",
@@ -732,6 +768,23 @@ function loadDatabase(): DatabaseStore {
     if (fs.existsSync(DB_FILE)) {
       const raw = fs.readFileSync(DB_FILE, "utf-8");
       memoryStore = JSON.parse(raw) as DatabaseStore;
+      if (Array.isArray(memoryStore.vehicles)) {
+        memoryStore.vehicles.forEach((v) => {
+          if (typeof v.latitude !== "number" || typeof v.longitude !== "number") {
+            const matchedZone =
+              CAMPUS_ZONES.find(
+                (z) =>
+                  z.city.toLowerCase() === (v.city || "").toLowerCase() &&
+                  (z.name === v.campusZone || z.id === (v as any).campusZoneId)
+              ) ||
+              CAMPUS_ZONES.find((z) => z.city.toLowerCase() === (v.city || "").toLowerCase()) ||
+              CAMPUS_ZONES[0];
+            v.latitude = matchedZone.coordinates.lat;
+            v.longitude = matchedZone.coordinates.lng;
+            if (!v.campusZone) v.campusZone = matchedZone.name;
+          }
+        });
+      }
       return memoryStore;
     }
   } catch (err) {

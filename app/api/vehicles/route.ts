@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { db, VehicleListingStatus } from "@/lib/server/db";
 import { blockUnconfiguredProductionAccess, isProductionEnvironment } from "@/lib/server/production-safety";
 import { getIndiaDateString, isDateOnly } from "@/lib/date-utils";
+import { haversineDistance, isValidCoordinate, getCampusZoneById } from "@/lib/campus-zones";
+import { searchLocation } from "@/lib/server/geocoding";
 
 export async function GET(request: Request) {
   try {
@@ -45,6 +47,43 @@ export async function GET(request: Request) {
 
     if (start && end) {
       vehicles = vehicles.filter((vehicle) => db.checkAvailability(vehicle.id, start, end));
+    }
+
+    const latParam = searchParams.get("lat");
+    const lngParam = searchParams.get("lng");
+    const radiusParam = searchParams.get("radiusKm");
+    const sortByParam = searchParams.get("sortBy");
+
+    if (latParam && lngParam) {
+      const userLat = parseFloat(latParam);
+      const userLng = parseFloat(lngParam);
+      if (isValidCoordinate(userLat, userLng)) {
+        // Calculate coordinate distance for each vehicle with valid coordinates
+        vehicles = vehicles.map((v) => {
+          if (typeof v.latitude === "number" && typeof v.longitude === "number") {
+            const distanceKm = haversineDistance(userLat, userLng, v.latitude, v.longitude);
+            return { ...v, distanceKm };
+          }
+          return v;
+        });
+
+        // Filter by radius if specified
+        if (radiusParam) {
+          const maxRadius = parseFloat(radiusParam);
+          if (!isNaN(maxRadius) && maxRadius > 0) {
+            vehicles = vehicles.filter((v: any) => typeof v.distanceKm === "number" && v.distanceKm <= maxRadius);
+          }
+        }
+
+        // Sort by distance if requested
+        if (sortByParam === "distance" || sortByParam === "nearest") {
+          vehicles.sort((a: any, b: any) => {
+            const distA = typeof a.distanceKm === "number" ? a.distanceKm : 99999;
+            const distB = typeof b.distanceKm === "number" ? b.distanceKm : 99999;
+            return distA - distB;
+          });
+        }
+      }
     }
 
     return NextResponse.json({ vehicles, count: vehicles.length });
@@ -95,6 +134,10 @@ export async function POST(request: Request) {
       description,
       hostNotes,
       guidelines,
+      latitude,
+      longitude,
+      campusZoneId,
+      campusZone,
     } = body;
 
     if (!name || !make || !price || Number(price) < 200) {
@@ -120,6 +163,39 @@ export async function POST(request: Request) {
       );
     }
 
+    let finalLat = typeof latitude === "number" && isValidCoordinate(latitude, longitude) ? latitude : undefined;
+    let finalLng = typeof longitude === "number" && isValidCoordinate(latitude, longitude) ? longitude : undefined;
+    let finalZone = campusZone || "";
+
+    if (campusZoneId) {
+      const matchedZone = getCampusZoneById(campusZoneId);
+      if (matchedZone) {
+        finalZone = matchedZone.name;
+        if (finalLat === undefined || finalLng === undefined) {
+          finalLat = matchedZone.coordinates.lat;
+          finalLng = matchedZone.coordinates.lng;
+        }
+      }
+    }
+
+    if (finalLat === undefined || finalLng === undefined) {
+      try {
+        const geoResults = await searchLocation(
+          `${String(addressLine1).trim()}, ${String(city).trim()}`,
+          String(city).trim()
+        );
+        if (geoResults.length > 0) {
+          finalLat = geoResults[0].lat;
+          finalLng = geoResults[0].lng;
+          if (!finalZone && geoResults[0].isCampusZone) {
+            finalZone = geoResults[0].shortName;
+          }
+        }
+      } catch (err) {
+        console.warn("Auto-geocoding listing failed:", err);
+      }
+    }
+
     const newVehicle = db.createVehicle({
       ownerId: ownerId || "usr-host-1",
       ownerName: ownerName || "Verified Host",
@@ -135,7 +211,10 @@ export async function POST(request: Request) {
       pinCode: String(pinCode).trim(),
       addressLine1: String(addressLine1).trim(),
       addressLine2: String(addressLine2 || "").trim(),
-      campusZone: "",
+      campusZone: finalZone,
+      campusZoneId: campusZoneId || undefined,
+      latitude: finalLat,
+      longitude: finalLng,
       pickupAddress: [String(addressLine1).trim(), String(addressLine2 || "").trim()].filter(Boolean).join(", "),
       price: Number(price),
       hourlyPrice: Number(hourlyPrice) || Math.round(Number(price) / 7),

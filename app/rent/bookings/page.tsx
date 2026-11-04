@@ -272,6 +272,16 @@ export default function BookingsPage() {
                     <MapPin size={13} style={{ display: "inline", marginRight: 4 }} />
                     {b.pickupZone || b.city}
                   </span>
+                  {b.dropoffZone && b.dropoffZone !== b.pickupZone && (
+                    <span>
+                      → Drop-off: {b.dropoffZone}
+                    </span>
+                  )}
+                  {typeof b.routeDistanceKm === "number" && (
+                    <span style={{ color: "#546e14", fontWeight: 600 }}>
+                      Corridor: {b.routeDistanceKm} km {b.estimatedDurationMins ? `(${b.estimatedDurationMins}m est.)` : ""}
+                    </span>
+                  )}
                   <span>
                     <CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} />
                     {b.start} → {b.end}

@@ -102,3 +102,84 @@ The following are product requirements, not claims that MOBILITY has independent
 - **Privacy:** Restrict driving-license, contact, booking and financial data to the people and services that need it, using server-enforced authorization.
 
 These controls must be operationally implemented and tested before MOBILITY is marketed as a fully verified or production-ready rental service.
+
+
+---
+
+## 8. Geospatial & Meteorological Architecture
+
+MOBILITY treats geographical location and trip context as first-class citizens across search, discovery, booking, and host onboarding.
+
+### Supported Public Services & Integrations
+
+| Service / Provider | Capability in MOBILITY | Auth / Key Requirements | Rate Limits & Terms |
+|---|---|---|---|
+| **OpenStreetMap & Leaflet** | Interactive campus map rendering, depot and vehicle pins, route geometry overlays. | No API key required. | OpenStreetMap Standard Tile Layer terms: valid User-Agent, attribution to OpenStreetMap contributors. |
+| **Open-Meteo** | Live temperature, weather conditions, rain forecast, and contextual rider advisories (e.g. rain gear alerts for 2-wheelers). | Free, no API key required for non-commercial use. | 10,000 requests/day per IP; CC BY 4.0 license. |
+| **OSRM (Open Source Routing Machine)** | Road-based route calculation, distance in km, driving duration in minutes, GeoJSON LineString coordinates. | Free public demo server (no key required). | ODbL 1.0 license; community fair-use policy. |
+| **OpenRouteService** *(Optional)* | Premium road routing, driving and cycling profiles, alternative corridors. | Optional `OPENROUTESERVICE_API_KEY`. | Free tier: 2,000 requests/day. If unconfigured or quota exceeded, falls back smoothly to OSRM and the campus road network model. |
+| **OpenStreetMap Nominatim** | Address-to-coordinate geocoding and reverse geocoding with nearest campus zone matching. | No API key required. | 1 request/second policy strictly enforced via server rate-limiter; descriptive User-Agent header; ODbL 1.0 license. |
+| **OpenCage** *(Optional)* | Enterprise forward & reverse geocoding with regional bounds. | Optional `OPENCAGE_API_KEY`. | Free tier: 2,500 requests/day. If unconfigured, automatically uses OpenStreetMap Nominatim. |
+
+### Architectural Highlights
+
+1. **Predefined Campus Zones Directory (`lib/campus-zones.ts`):**
+   - Maintained catalog of major campus zones (Chennai, Bengaluru, Kochi, Coimbatore, Hyderabad, Mumbai).
+   - Instant zero-latency local matching for campus gates, hostel clusters, tech parks, and administrative plazas.
+   - High-precision Haversine distance calculations and nearest zone discovery.
+
+2. **Server-Side Resilience & Caching (`lib/server/geo-cache.ts`):**
+   - In-memory LRU-like TTL cache for geocoding (1 hour), routing (30 minutes), and weather (15 minutes).
+   - Outgoing rate-limiter enforcing OpenStreetMap Nominatim's strict 1 req/sec policy.
+   - Zero private API keys exposed to the client browser.
+
+3. **Multi-Tier Routing Fallbacks (`lib/server/routing.ts`):**
+   - Tier 1: OpenRouteService (if configured).
+   - Tier 2: OSRM public routing API.
+   - Tier 3: Simulated campus road network model with 1.28× road curvature factor and realistic vehicle velocity profiling (24 km/h for 2-Wheelers, 28 km/h for 4-Wheelers). The map and booking flow never break even when offline.
+
+4. **Proximity Search & Interactive Map View (`/rent`):**
+   - "Find Rides Near Me" (browser Geolocation API with reverse geocoding).
+   - Campus Zone quick-jump dropdown.
+   - Proximity radius filter (2 km walking, 5 km perimeter, 10 km suburban, 25 km regional).
+   - "Distance: Nearest First" sorting.
+   - Toggleable **Interactive Map View** showing all available inventory and campus depots plotted on OpenStreetMap.
+
+5. **Journey Planner (`/rent/vehicle/[id]`):**
+   - Pickup bay and drop-off destination selection.
+   - Live road route distance and travel duration calculation.
+   - Live Open-Meteo meteorological card with contextual rain advisories tailored to two-wheelers vs four-wheelers.
+
+---
+
+## 9. Environment Variables & Testing
+
+### Environment Variables
+
+Configure optional API credentials in `.env.local` (see `.env.example`):
+
+```bash
+# Required for Gemini AI Studio features
+GEMINI_API_KEY="your_api_key_here"
+APP_URL="http://localhost:3000"
+
+# Optional Geospatial Services (100% functional without keys via built-in fallbacks)
+OPENROUTESERVICE_API_KEY="" # https://openrouteservice.org/
+OPENCAGE_API_KEY=""         # https://opencagedata.com/
+```
+
+### Running Tests & Quality Checks
+
+```bash
+# Run automated geospatial, routing, weather, and booking regression tests
+npm test
+
+# Run TypeScript static type verification
+npm run typecheck
+
+# Run ESLint codebase inspection
+npm run lint
+
+# Build production bundle
+npm run build
+```

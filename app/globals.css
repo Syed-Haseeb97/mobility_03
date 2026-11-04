@@ -94,3 +94,167 @@
 
 .market-range-selected{position:absolute;top:50%;height:4px;transform:translateY(-50%);background:#a6c83e;border-radius:20px;z-index:1;pointer-events:none;transition:left .12s,width .12s}
 .market-range-inputs input[type=range]{z-index:2}
+
+
+/* --- Leaflet & Geospatial Intelligence Styles --- */
+@import "leaflet/dist/leaflet.css";
+
+.campus-map-container {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  background: #171915;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #2d3326;
+}
+
+.leaflet-container {
+  font-family: var(--sans) !important;
+  background: #171915 !important;
+  width: 100%;
+  height: 100%;
+}
+
+/* Subtle dark-toned filter on OpenStreetMap tiles matching MOBILITY's institutional theme */
+.leaflet-tile-pane {
+  filter: brightness(0.85) contrast(1.1) saturate(0.8);
+}
+
+.leaflet-popup-content-wrapper {
+  background: #20251f !important;
+  color: #f5f5ed !important;
+  border-radius: 4px !important;
+  border: 1px solid #3c462e !important;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45) !important;
+}
+
+.leaflet-popup-tip {
+  background: #20251f !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+.custom-map-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  font-weight: 800;
+  transition: transform 0.2s;
+}
+
+.custom-map-pin:hover {
+  transform: scale(1.15);
+}
+
+.pin-pickup {
+  background: #c8ff3a;
+  color: #171915;
+  border: 2px solid #171915;
+}
+
+.pin-dropoff {
+  background: #60a5fa;
+  color: #0f172a;
+  border: 2px solid #1e293b;
+}
+
+.pin-vehicle {
+  background: #20251f;
+  color: #c8ff3a;
+  border: 2px solid #c8ff3a;
+}
+
+.pin-zone {
+  background: #364026;
+  color: #d9fa58;
+  border: 1.5px dashed #d9fa58;
+}
+
+/* Journey Planner & Route Intelligence Card */
+.journey-planner-card {
+  background: #fff;
+  border: 1px solid #e2e4d9;
+  border-radius: 3px;
+  padding: 24px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px rgba(28, 33, 18, 0.05);
+}
+
+.journey-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.journey-stats-badge {
+  display: flex;
+  gap: 12px;
+  background: #171915;
+  color: #f5f5ed;
+  padding: 10px 16px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.journey-stats-badge span b {
+  color: #c8ff3a;
+  font-weight: 700;
+}
+
+/* Weather Intelligence Card */
+.weather-intelligence-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 3px;
+  margin-top: 14px;
+  font-size: 12px;
+  border: 1px solid;
+}
+
+.weather-info {
+  background: #f4f6ec;
+  border-color: #dbe4be;
+  color: #273017;
+}
+
+.weather-caution {
+  background: #fefce8;
+  border-color: #fef08a;
+  color: #854d0e;
+}
+
+.weather-warning {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+/* Proximity Badge on Vehicle Cards */
+.proximity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f0f4db;
+  color: #4b6113;
+  padding: 3px 7px;
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+}

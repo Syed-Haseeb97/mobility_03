@@ -36,6 +36,8 @@ export type Vehicle = {
   showFuel?: boolean;
   showSeats?: boolean;
   helmetIncluded?: boolean;
+  latitude?: number;
+  longitude?: number;
   price: number; // daily rate
   hourlyPrice?: number;
   deposit?: number;
@@ -78,6 +80,14 @@ export type Booking = {
   city: string;
   pickupZone?: string;
   pickupAddress?: string;
+  pickupLat?: number;
+  pickupLng?: number;
+  dropoffZone?: string;
+  dropoffAddress?: string;
+  dropoffLat?: number;
+  dropoffLng?: number;
+  routeDistanceKm?: number;
+  estimatedDurationMins?: number;
   registrationNumber?: string;
   start: string;
   end: string;
@@ -130,6 +140,8 @@ export const seedVehicles: Vehicle[] = [
   // --- 2-WHEELERS ---
   {
     id: "v1",
+    latitude: 12.9915,
+    longitude: 80.2337,
     name: "Splendor Plus",
     make: "Hero",
     category: "Bike",
@@ -163,6 +175,8 @@ export const seedVehicles: Vehicle[] = [
   },
   {
     id: "v2",
+    latitude: 12.9344,
+    longitude: 77.6056,
     name: "Pulsar 150",
     make: "Bajaj",
     category: "Bike",
@@ -196,6 +210,8 @@ export const seedVehicles: Vehicle[] = [
   },
   {
     id: "v3",
+    latitude: 10.0435,
+    longitude: 76.3242,
     name: "Classic 350",
     make: "Royal Enfield",
     category: "Bike",
@@ -229,6 +245,8 @@ export const seedVehicles: Vehicle[] = [
   },
   {
     id: "v4",
+    latitude: 11.0168,
+    longitude: 76.9558,
     name: "450X Gen 3",
     make: "Ather",
     category: "Scooter",
@@ -264,6 +282,8 @@ export const seedVehicles: Vehicle[] = [
   // --- 4-WHEELERS ---
   {
     id: "v5",
+    latitude: 11.028,
+    longitude: 76.936,
     name: "Nano Twist",
     make: "Tata",
     category: "Hatchback",
@@ -296,6 +316,8 @@ export const seedVehicles: Vehicle[] = [
   },
   {
     id: "v6",
+    latitude: 13.0184,
+    longitude: 77.567,
     name: "City i-VTEC",
     make: "Honda",
     category: "Sedan",
@@ -328,6 +350,8 @@ export const seedVehicles: Vehicle[] = [
   },
   {
     id: "v7",
+    latitude: 10.0435,
+    longitude: 76.3242,
     name: "Thar 4×4",
     make: "Mahindra",
     category: "SUV",
@@ -360,6 +384,8 @@ export const seedVehicles: Vehicle[] = [
   },
   {
     id: "v8",
+    latitude: 12.9915,
+    longitude: 80.2337,
     name: "Creta SX",
     make: "Hyundai",
     category: "SUV",

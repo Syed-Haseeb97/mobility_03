@@ -13,6 +13,12 @@ export type DemoBookingInput = {
   end: string;
   paymentMethod: "UPI" | "CARD" | "NETBANKING";
   helmetOptionSelected: string;
+  dropoffZone?: string;
+  dropoffAddress?: string;
+  dropoffLat?: number;
+  dropoffLng?: number;
+  routeDistanceKm?: number;
+  estimatedDurationMins?: number;
 };
 
 export function readDemoBookings(): Booking[] {
@@ -60,6 +66,14 @@ export function createDemoBooking(input: DemoBookingInput): Booking {
     city: vehicle.city,
     pickupZone: vehicle.campusZone,
     pickupAddress: vehicle.pickupAddress,
+    pickupLat: vehicle.latitude,
+    pickupLng: vehicle.longitude,
+    dropoffZone: input.dropoffZone || vehicle.campusZone,
+    dropoffAddress: input.dropoffAddress || vehicle.pickupAddress,
+    dropoffLat: input.dropoffLat,
+    dropoffLng: input.dropoffLng,
+    routeDistanceKm: input.routeDistanceKm,
+    estimatedDurationMins: input.estimatedDurationMins,
     registrationNumber: vehicle.registrationNumber,
     start: input.start,
     end: input.end,

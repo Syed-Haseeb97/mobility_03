@@ -26,6 +26,7 @@ import { money, daysBetween, seedVehicles, type Vehicle } from "@/lib/data";
 import { createDemoBooking } from "@/lib/demo-client-store";
 import { useSession } from "@/components/session-provider";
 import { getIndiaDateString, nextDateString } from "@/lib/date-utils";
+import { JourneyPlanner, type JourneyDetails } from "@/components/journey-planner";
 
 export default function VehicleDetail() {
   const params = useParams<{ id: string }>();
@@ -35,6 +36,7 @@ export default function VehicleDetail() {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [activePhoto, setActivePhoto] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [journey, setJourney] = useState<JourneyDetails | null>(null);
 
   // Booking form state
   const [start, setStart] = useState("");
@@ -186,6 +188,14 @@ export default function VehicleDetail() {
           end,
           helmetOptionSelected: helmetOption,
           paymentMethod,
+          pickupLat: journey?.pickup.lat,
+          pickupLng: journey?.pickup.lng,
+          dropoffZone: journey?.dropoff.zoneName || journey?.dropoff.name,
+          dropoffAddress: journey?.dropoff.name,
+          dropoffLat: journey?.dropoff.lat,
+          dropoffLng: journey?.dropoff.lng,
+          routeDistanceKm: journey?.route?.distanceKm,
+          estimatedDurationMins: journey?.route?.durationMins,
         }),
       });
 
@@ -207,6 +217,12 @@ export default function VehicleDetail() {
             end,
             paymentMethod,
             helmetOptionSelected: helmetOption,
+            dropoffZone: journey?.dropoff.zoneName || journey?.dropoff.name,
+            dropoffAddress: journey?.dropoff.name,
+            dropoffLat: journey?.dropoff.lat,
+            dropoffLng: journey?.dropoff.lng,
+            routeDistanceKm: journey?.route?.distanceKm,
+            estimatedDurationMins: journey?.route?.durationMins,
           });
         } else {
           setBookingNotice({
@@ -429,6 +445,9 @@ export default function VehicleDetail() {
           </div>
           )}
 
+          {/* GEOSPATIAL JOURNEY INTELLIGENCE & CAMPUS CORRIDOR ROUTING */}
+          <JourneyPlanner vehicle={vehicle} onJourneyUpdate={setJourney} />
+
           {/* HELMET & SAFETY PROTOCOL */}
           {is2Wheeler && (vehicle.helmetIncluded ?? Boolean(vehicle.helmetOption?.includes("Included"))) && (
             <div style={{ padding: "26px 0", borderBottom: "1px solid var(--line)" }}>
@@ -543,6 +562,33 @@ export default function VehicleDetail() {
                   onChange={(e) => setEnd(e.target.value)}
                 />
               </label>
+
+              {journey && (
+                <div
+                  style={{
+                    background: "#f4f6ec",
+                    border: "1px solid #dbe4be",
+                    padding: "10px 12px",
+                    borderRadius: 2,
+                    fontSize: 11,
+                    display: "grid",
+                    gap: 4,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, color: "#364121" }}>
+                    <span>📍 Corridor Transit</span>
+                    <span>{journey.route ? `${journey.route.formattedDistance} · ${journey.route.formattedDuration}` : "Calculating…"}</span>
+                  </div>
+                  <div style={{ fontSize: 10, color: "#6b7280" }}>
+                    To: {journey.dropoff.zoneName || journey.dropoff.name}
+                  </div>
+                  {journey.weather && (
+                    <div style={{ fontSize: 10, color: journey.weather.rainRisk === "high" ? "#b91c1c" : "#4d7c0f", marginTop: 2 }}>
+                      🌤 Weather: {journey.weather.temperatureC}°C, {journey.weather.conditionLabel}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <label>
                 Full Name (as on Driving License)

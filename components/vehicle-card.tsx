@@ -53,6 +53,11 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             <MapPin size={11} />
             {vehicle.showPickupAddress !== false ? (vehicle.addressLine1 || vehicle.pickupAddress?.split(",")[0].trim() || vehicle.city) : vehicle.city}{vehicle.city && vehicle.showPickupAddress !== false ? ", " + vehicle.city : ""}
           </span>
+          {typeof (vehicle as any).distanceKm === "number" && (
+            <span className="proximity-badge">
+              📍 {((vehicle as any).distanceKm).toFixed(1)} km away
+            </span>
+          )}
           <span>{vehicle.trips > 0 && vehicle.rating > 0 ? <>★ {vehicle.rating.toFixed(2)} · {vehicle.trips} trips</> : <strong style={{ color: "#546e14" }}>New</strong>}</span>
         </div>
 

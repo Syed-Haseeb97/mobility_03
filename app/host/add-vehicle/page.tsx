@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, HardHat, ShieldCheck, UploadCloud, X, SlidersHorizontal } from "lucide-react";
 import { type VehicleCategory, type VehicleWheels } from "@/lib/data";
 import { useSession } from "@/components/session-provider";
+import { CAMPUS_ZONES } from "@/lib/campus-zones";
 
 async function prepareVehiclePhoto(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file);
@@ -48,6 +49,7 @@ export default function AddVehicle() {
   const [state, setState] = useState("");
   const [country, setCountry] = useState("India");
   const [pinCode, setPinCode] = useState("");
+  const [campusZoneId, setCampusZoneId] = useState("");
 
   // Step 2: Operational Pricing & Specs
   const [price, setPrice] = useState("");
@@ -141,6 +143,7 @@ export default function AddVehicle() {
           pinCode: pinCode.trim(),
           addressLine1: addressLine1.trim(),
           addressLine2: addressLine2.trim(),
+          campusZoneId: campusZoneId || undefined,
           campusZone: "",
           pickupAddress: [addressLine1.trim(), addressLine2.trim()].filter(Boolean).join(", "),
           price: Number(price),
@@ -341,7 +344,30 @@ export default function AddVehicle() {
                   </label>
                 </div>
 
-                <div className="eyebrow" style={{ marginTop: 10 }}>Vehicle address</div>
+                <div className="eyebrow" style={{ marginTop: 10 }}>Vehicle address &amp; campus bay</div>
+                <label>
+                  Predefined Campus Depot / Zone <span style={{ fontWeight: 400, color: "#74786d" }}>(optional quick selector)</span>
+                  <select
+                    className="form-input"
+                    value={campusZoneId}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      setCampusZoneId(selectedId);
+                      const zone = CAMPUS_ZONES.find((z) => z.id === selectedId);
+                      if (zone) {
+                        setCity(zone.city);
+                        if (!addressLine1) setAddressLine1(`${zone.name} (${zone.landmarks[0] || "Campus Hub"})`);
+                      }
+                    }}
+                  >
+                    <option value="">Custom address or select campus zone…</option>
+                    {CAMPUS_ZONES.map((z) => (
+                      <option key={z.id} value={z.id}>
+                        {z.city}: {z.name} ({z.code})
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <label>
                   Address line 1
                   <input className="form-input" autoComplete="address-line1" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="Street address, building, or pickup location" />
