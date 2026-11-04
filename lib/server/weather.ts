@@ -1,5 +1,6 @@
 import { isValidCoordinate } from "../campus-zones";
 import { geoCache } from "./geo-cache";
+import { secureUpstreamFetch } from "./ssrf-guard";
 
 export interface WeatherData {
   isAvailable: boolean;
@@ -36,6 +37,7 @@ function interpretWmoCode(code: number): { label: string; isRain: boolean; isSto
 
 /**
  * Fetches current weather and rain prediction from Open-Meteo.
+ * Includes input validation, timeout protection, 15-minute caching, and safe error fallback.
  */
 export async function getJourneyWeather(
   lat: number,
@@ -53,28 +55,24 @@ export async function getJourneyWeather(
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,weather_code,wind_speed_10m&hourly=precipitation_probability,weather_code&forecast_days=2&timezone=auto`;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
+    const res = await secureUpstreamFetch(url, {}, 5000);
 
     if (res.ok) {
       const data = await res.json();
       const current = data.current || {};
       const hourly = data.hourly || {};
 
-      const temp = Math.round((current.temperature_2m ?? 28) * 10) / 10;
-      const feelsLike = Math.round((current.apparent_temperature ?? temp) * 10) / 10;
-      const humidity = Math.round(current.relative_humidity_2m ?? 65);
-      const windSpeed = Math.round(current.wind_speed_10m ?? 12);
-      const precip = Math.round((current.precipitation ?? 0) * 10) / 10;
-      const weatherCode = Number(current.weather_code ?? 0);
+      const temp = Math.round((Number(current.temperature_2m) || 28) * 10) / 10;
+      const feelsLike = Math.round((Number(current.apparent_temperature) || temp) * 10) / 10;
+      const humidity = Math.round(Number(current.relative_humidity_2m) || 65);
+      const windSpeed = Math.round(Number(current.wind_speed_10m) || 12);
+      const precip = Math.round((Number(current.precipitation) || 0) * 10) / 10;
+      const weatherCode = Number(current.weather_code) || 0;
       const isDaytime = Boolean(current.is_day ?? 1);
 
       // Examine upcoming 6 hours precipitation probability
       const next6Probabilities: number[] = Array.isArray(hourly.precipitation_probability)
-        ? hourly.precipitation_probability.slice(0, 6)
+        ? hourly.precipitation_probability.slice(0, 6).map((n: unknown) => Number(n) || 0)
         : [];
       const maxPrecipProb = next6Probabilities.length ? Math.max(...next6Probabilities) : 0;
 
@@ -140,7 +138,7 @@ export async function getJourneyWeather(
     console.warn("Open-Meteo weather fetch error:", err);
   }
 
-  // Graceful fallback when weather API is unreachable
+  // Graceful fallback when weather API is unreachable or times out
   return {
     isAvailable: false,
     temperatureC: 28,

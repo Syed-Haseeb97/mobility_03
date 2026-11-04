@@ -238,6 +238,10 @@ export function findNearestCampusZone(
   lng: number,
   city?: string
 ): { zone: CampusZone; distanceKm: number } | null {
+  if (!isValidCoordinate(lat, lng)) {
+    return null;
+  }
+
   const zones = getCampusZonesByCity(city);
   if (!zones.length) return null;
 

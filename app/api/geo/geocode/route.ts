@@ -7,9 +7,9 @@ export async function GET(request: Request) {
     const query = searchParams.get("q") || "";
     const city = searchParams.get("city") || undefined;
 
-    if (!query || query.trim().length < 2) {
+    if (!query || query.trim().length < 3) {
       return NextResponse.json(
-        { error: "Query parameter 'q' must contain at least 2 characters." },
+        { error: "Query parameter 'q' must contain at least 3 characters." },
         { status: 400 }
       );
     }

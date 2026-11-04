@@ -170,9 +170,9 @@ export function JourneyPlanner({ vehicle, onJourneyUpdate }: JourneyPlannerProps
     }
   }, [pickup, dropoff, route, weather, onJourneyUpdate]);
 
-  // Handle Search Input with Debounce
+  // Handle Search Input with Debounce (minimum 3 characters for API compliance)
   useEffect(() => {
-    if (!searchQuery || searchQuery.trim().length < 2) {
+    if (!searchQuery || searchQuery.trim().length < 3) {
       setSearchResults([]);
       return;
     }
@@ -249,11 +249,11 @@ export function JourneyPlanner({ vehicle, onJourneyUpdate }: JourneyPlannerProps
         {route && (
           <div className="journey-stats-badge">
             <span>
-              ROAD DISTANCE: <b>{route.formattedDistance}</b>
+              {route.isEstimated ? "ESTIMATED DISTANCE:" : "ROAD DISTANCE:"} <b>{route.formattedDistance}</b>
             </span>
             <span>·</span>
             <span>
-              EST. TIME: <b>{route.formattedDuration}</b>
+              {route.isEstimated ? "EST. TIME:" : "TRAVEL TIME:"} <b>{route.formattedDuration}</b>
             </span>
           </div>
         )}
@@ -491,30 +491,49 @@ export function JourneyPlanner({ vehicle, onJourneyUpdate }: JourneyPlannerProps
         />
       </div>
 
-      {/* Routing Source & Distance Sheet */}
+      {/* Routing Source & Route Type Classification Sheet */}
       {route && (
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: "grid",
+            gap: 6,
             fontSize: 11,
             color: "#6b7280",
-            padding: "8px 12px",
-            background: "#f8fafc",
-            border: "1px solid #e2e8f0",
+            padding: "10px 12px",
+            background: route.isEstimated ? "#fffbeb" : "#f8fafc",
+            border: `1px solid ${route.isEstimated ? "#fde68a" : "#e2e8f0"}`,
             borderRadius: 2,
-            flexWrap: "wrap",
-            gap: 8,
+            marginBottom: 16,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <RouteIcon size={13} color="#546e14" />
-            <span>
-              Route calculated via: <b>{route.routes[0]?.name || "Optimal Corridor"}</b> ({route.source.toUpperCase()})
-            </span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <RouteIcon size={14} color={route.isEstimated ? "#d97706" : "#546e14"} />
+              <span>
+                <b>{route.routes[0]?.name || "Transit Corridor"}</b>
+              </span>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontFamily: "var(--mono)",
+                  fontWeight: 700,
+                  padding: "2px 6px",
+                  borderRadius: 2,
+                  background: route.isEstimated ? "#fef3c7" : "#dcfce7",
+                  color: route.isEstimated ? "#b45309" : "#166534",
+                  border: `1px solid ${route.isEstimated ? "#fcd34d" : "#bbf7d0"}`,
+                }}
+              >
+                {route.isEstimated ? "⚠ ESTIMATED ROUTE" : "✓ ACTUAL ROAD ROUTE"}
+              </span>
+            </div>
+            <div style={{ fontStyle: "italic", fontSize: 10, color: "#64748b" }}>{route.attribution}</div>
           </div>
-          <div style={{ fontStyle: "italic", fontSize: 10 }}>{route.attribution}</div>
+          {route.isEstimated && (
+            <div style={{ fontSize: 10, color: "#92400e", lineHeight: 1.4 }}>
+              Notice: Live turn-by-turn road navigation is currently operating on calibrated campus road topology (1.28× tortuosity factor).
+            </div>
+          )}
         </div>
       )}
 

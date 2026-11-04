@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import type { Map as LeafletMap, Polyline as LeafletPolyline, Marker as LeafletMarker, LayerGroup } from "leaflet";
+import type { Map as LeafletMap, Polyline as LeafletPolyline, LayerGroup } from "leaflet";
 
 export interface MapMarkerItem {
   id: string;
@@ -27,6 +27,17 @@ export interface CampusMapProps {
   height?: string | number;
   className?: string;
 }
+
+// Configurable Map Tile Providers with CARTO Positron as default aesthetic
+const DEFAULT_TILE_URL =
+  process.env.NEXT_PUBLIC_MAP_TILE_URL ||
+  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
+const DEFAULT_ATTRIBUTION =
+  process.env.NEXT_PUBLIC_MAP_ATTRIBUTION ||
+  '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+
+const FALLBACK_OSM_TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 export function CampusMap({
   center = { lat: 12.9915, lng: 80.2337 }, // Default: Chennai Campus Hub
@@ -72,12 +83,29 @@ export function CampusMap({
         scrollWheelZoom: false,
       });
 
-      // OpenStreetMap standard tile layer with compliant attribution
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
-      }).addTo(map);
+      // Primary Tile Layer: CARTO Positron (clean, neutral aesthetic)
+      const primaryTileLayer = L.tileLayer(DEFAULT_TILE_URL, {
+        maxZoom: 20,
+        subdomains: "abcd",
+        attribution: DEFAULT_ATTRIBUTION,
+      });
+
+      // Graceful error fallback to OpenStreetMap standard tiles if CARTO tiles fail
+      let hasFallenBack = false;
+      primaryTileLayer.on("tileerror", () => {
+        if (!hasFallenBack && isMounted) {
+          hasFallenBack = true;
+          console.warn("CARTO tile error detected, falling back to OpenStreetMap standard tiles.");
+          primaryTileLayer.remove();
+          L.tileLayer(FALLBACK_OSM_TILE_URL, {
+            maxZoom: 19,
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+          }).addTo(map);
+        }
+      });
+
+      primaryTileLayer.addTo(map);
 
       const markersGroup = L.layerGroup().addTo(map);
       markersGroupRef.current = markersGroup;
@@ -245,7 +273,7 @@ export function CampusMap({
           fontSize: 12,
         }}
       >
-        <span>Loading OpenStreetMap Campus View…</span>
+        <span>Loading CARTO Positron Campus View…</span>
       </div>
     );
   }

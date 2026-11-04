@@ -3,6 +3,7 @@ import { db, BookingRecord } from "@/lib/server/db";
 import { daysBetween } from "@/lib/data";
 import { blockUnconfiguredProductionAccess } from "@/lib/server/production-safety";
 import { getIndiaDateString, isDateOnly } from "@/lib/date-utils";
+import { isValidCoordinate } from "@/lib/campus-zones";
 
 export async function GET(request: Request) {
   const blocked = blockUnconfiguredProductionAccess("Booking records");
@@ -141,10 +142,19 @@ export async function POST(request: Request) {
       pickupLng: vehicle.longitude,
       dropoffZone: dropoffZone || vehicle.campusZone,
       dropoffAddress: dropoffAddress || vehicle.pickupAddress,
-      dropoffLat: typeof dropoffLat === "number" ? dropoffLat : vehicle.latitude,
-      dropoffLng: typeof dropoffLng === "number" ? dropoffLng : vehicle.longitude,
-      routeDistanceKm: typeof routeDistanceKm === "number" ? routeDistanceKm : undefined,
-      estimatedDurationMins: typeof estimatedDurationMins === "number" ? estimatedDurationMins : undefined,
+      dropoffLat: isValidCoordinate(dropoffLat, dropoffLng) ? dropoffLat : vehicle.latitude,
+      dropoffLng: isValidCoordinate(dropoffLat, dropoffLng) ? dropoffLng : vehicle.longitude,
+      routeDistanceKm:
+        typeof routeDistanceKm === "number" && Number.isFinite(routeDistanceKm) && routeDistanceKm >= 0 && routeDistanceKm <= 2500
+          ? Math.round(routeDistanceKm * 10) / 10
+          : undefined,
+      estimatedDurationMins:
+        typeof estimatedDurationMins === "number" &&
+        Number.isFinite(estimatedDurationMins) &&
+        estimatedDurationMins >= 0 &&
+        estimatedDurationMins <= 10000
+          ? Math.round(estimatedDurationMins)
+          : undefined,
 
       customerId: customerId || "usr-cust-1",
       customerName: customerName.trim(),

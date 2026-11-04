@@ -575,10 +575,15 @@ export default function VehicleDetail() {
                     gap: 4,
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, color: "#364121" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 700, color: "#364121" }}>
                     <span>📍 Corridor Transit</span>
                     <span>{journey.route ? `${journey.route.formattedDistance} · ${journey.route.formattedDuration}` : "Calculating…"}</span>
                   </div>
+                  {journey.route && (
+                    <div style={{ fontSize: 9, color: journey.route.isEstimated ? "#b45309" : "#15803d", fontWeight: 700 }}>
+                      {journey.route.isEstimated ? "⚠ Estimated Campus Route" : "✓ Actual Road Network Route"}
+                    </div>
+                  )}
                   <div style={{ fontSize: 10, color: "#6b7280" }}>
                     To: {journey.dropoff.zoneName || journey.dropoff.name}
                   </div>

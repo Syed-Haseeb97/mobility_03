@@ -1,3 +1,19 @@
+import { secureUpstreamFetch } from "./ssrf-guard";
+
+/**
+ * MOBILITY Geospatial Platform — GeoCache & Rate Limiting Module
+ *
+ * Provides high-speed TTL caching and coordinated rate-limiting for external
+ * geospatial endpoints (specifically OpenStreetMap Nominatim 1 req/sec policy).
+ *
+ * NOTE ON MULTI-INSTANCE / SERVERLESS DEPLOYMENTS:
+ * This rate-limiter coordinates sequential requests within the current Node.js process.
+ * In a distributed, multi-container, or multi-region serverless deployment, multiple
+ * independent worker processes may make concurrent upstream requests. For high-scale
+ * production with multiple instances, configure OPENCAGE_API_KEY (commercial tier) or
+ * deploy a shared Redis/KeyDB token-bucket rate limiter.
+ */
+
 interface CacheEntry<T> {
   value: T;
   expiresAt: number;
@@ -5,7 +21,7 @@ interface CacheEntry<T> {
 
 class GeoCache {
   private cache = new Map<string, CacheEntry<unknown>>();
-  private maxItems = 500;
+  private maxItems = 1000;
 
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
@@ -29,39 +45,67 @@ class GeoCache {
     });
   }
 
+  has(key: string): boolean {
+    return this.get(key) !== null;
+  }
+
   clear(): void {
     this.cache.clear();
+  }
+
+  size(): number {
+    return this.cache.size;
   }
 }
 
 export const geoCache = new GeoCache();
 
-// Enforce a safe minimum interval between outgoing Nominatim geocoding requests (OpenStreetMap requirement: 1 request/sec max)
-let lastNominatimRequestTime = 0;
-const NOMINATIM_INTERVAL_MS = 1100;
+// Sequential Request Queue for Nominatim to guarantee strict 1 req/sec compliance
+let nominatimQueue: Promise<void> = Promise.resolve();
+let lastNominatimTimestamp = 0;
 
-export async function rateLimitedNominatimFetch(url: string, headers: Record<string, string>): Promise<Response> {
-  const now = Date.now();
-  const timeSinceLast = now - lastNominatimRequestTime;
-  if (timeSinceLast < NOMINATIM_INTERVAL_MS) {
-    const waitMs = NOMINATIM_INTERVAL_MS - timeSinceLast;
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
-  }
-  lastNominatimRequestTime = Date.now();
+/**
+ * Rate-limited fetch for OpenStreetMap Nominatim API endpoints.
+ * Serializes all outgoing requests in a FIFO promise queue and enforces an interval
+ * of at least 1,100ms between calls to strictly comply with OpenStreetMap policy.
+ */
+export async function rateLimitedNominatimFetch(
+  url: string,
+  headers: Record<string, string> = {}
+): Promise<Response> {
+  const configuredInterval = Number(process.env.NOMINATIM_RATE_LIMIT_MS) || 1100;
+  const contactEmail = process.env.NOMINATIM_EMAIL || "contact@mobility-campus.local";
+  const userAgent =
+    process.env.NOMINATIM_USER_AGENT ||
+    `MOBILITY-Campus-Rental/1.0 (${contactEmail}; campus-vehicle-rental-marketplace)`;
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+  // Chain onto the sequential queue to prevent concurrency races
+  return new Promise<Response>((resolve, reject) => {
+    nominatimQueue = nominatimQueue
+      .then(async () => {
+        const now = Date.now();
+        const elapsed = now - lastNominatimTimestamp;
+        if (elapsed < configuredInterval) {
+          const waitTime = configuredInterval - elapsed;
+          await new Promise((r) => setTimeout(r, waitTime));
+        }
+        lastNominatimTimestamp = Date.now();
 
-  try {
-    return await fetch(url, {
-      headers: {
-        ...headers,
-        "User-Agent": "MOBILITY-Campus-Rental/1.0 (dev@mobility-campus.edu; github.com/Syed-Haseeb97/mobility_03)",
-        Accept: "application/json",
-      },
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeoutId);
-  }
+        const response = await secureUpstreamFetch(
+          url,
+          {
+            headers: {
+              ...headers,
+              "User-Agent": userAgent,
+              Accept: "application/json",
+            },
+          },
+          6000 // 6s timeout
+        );
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 }

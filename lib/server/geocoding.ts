@@ -1,5 +1,6 @@
 import { CAMPUS_ZONES, findNearestCampusZone, isValidCoordinate } from "../campus-zones";
 import { geoCache, rateLimitedNominatimFetch } from "./geo-cache";
+import { secureUpstreamFetch } from "./ssrf-guard";
 
 export interface GeocodingResult {
   displayName: string;
@@ -29,13 +30,15 @@ export interface ReverseGeocodingResult {
 
 /**
  * Forward Geocoding: Converts an address or place query to geographical coordinates.
+ * Enforces minimum query length of 3 characters, rate-limiting, and caching.
  */
 export async function searchLocation(
   query: string,
   city?: string
 ): Promise<GeocodingResult[]> {
   const cleanQuery = (query || "").trim();
-  if (!cleanQuery || cleanQuery.length < 2) return [];
+  // Strictly enforce minimum query length for API compliance and efficiency
+  if (!cleanQuery || cleanQuery.length < 3) return [];
 
   const cacheKey = `geocode:${cleanQuery.toLowerCase()}:${(city || "").toLowerCase()}`;
   const cached = geoCache.get<GeocodingResult[]>(cacheKey);
@@ -67,9 +70,9 @@ export async function searchLocation(
     });
   }
 
-  // If we already have 3+ local campus matches, return early or continue
+  // If we already have 4+ local campus matches, return early
   if (results.length >= 4) {
-    geoCache.set(cacheKey, results, 3600); // 1 hour
+    geoCache.set(cacheKey, results, 3600); // 1 hour cache
     return results;
   }
 
@@ -79,17 +82,14 @@ export async function searchLocation(
     try {
       const q = city && city !== "All locations" ? `${cleanQuery}, ${city}, India` : `${cleanQuery}, India`;
       const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(q)}&key=${opencageKey}&limit=5&no_annotations=1`;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeoutId);
+      const res = await secureUpstreamFetch(url, {}, 5000);
 
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.results)) {
           for (const item of data.results) {
-            const lat = item.geometry?.lat;
-            const lng = item.geometry?.lng;
+            const lat = Number(item.geometry?.lat);
+            const lng = Number(item.geometry?.lng);
             if (isValidCoordinate(lat, lng)) {
               results.push({
                 displayName: item.formatted || cleanQuery,
@@ -109,7 +109,7 @@ export async function searchLocation(
       console.warn("OpenCage geocoding query failed:", err);
     }
   } else {
-    // 3. OpenStreetMap Nominatim with rate limiting and timeout
+    // 3. OpenStreetMap Nominatim with strict rate limiting (1 req/sec) and timeout
     try {
       const q = city && city !== "All locations" ? `${cleanQuery}, ${city}` : cleanQuery;
       const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&addressdetails=1&countrycodes=in`;
@@ -158,6 +158,7 @@ export async function searchLocation(
 
 /**
  * Reverse Geocoding: Converts geographical coordinates to a human-readable location address.
+ * Prioritizes campus zones, followed by OpenCage (if configured), then Nominatim with fallback.
  */
 export async function reverseGeocode(
   lat: number,
@@ -180,26 +181,55 @@ export async function reverseGeocode(
   let displayName = isDirectCampusHit ? `${nearest.zone.name}, ${nearest.zone.city}` : `Coordinates (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
   let shortName = isDirectCampusHit ? nearest.zone.name : `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
   let attribution = "MOBILITY Geocoding Engine";
+  let resolvedFromApi = false;
 
-  // Try OpenStreetMap Nominatim reverse
-  try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-    const res = await rateLimitedNominatimFetch(url, {});
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.display_name) {
-        if (isDirectCampusHit) {
-          displayName = `${nearest.zone.name} (${data.display_name})`;
-          shortName = nearest.zone.name;
-        } else {
-          displayName = data.display_name;
-          shortName = data.name || data.address?.road || data.address?.suburb || displayName.split(",")[0];
+  // 1. Try OpenCage Reverse Geocoding if API key is provided
+  const opencageKey = process.env.OPENCAGE_API_KEY;
+  if (opencageKey) {
+    try {
+      const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${opencageKey}&limit=1&no_annotations=1`;
+      const res = await secureUpstreamFetch(url, {}, 5000);
+      if (res.ok) {
+        const data = await res.json();
+        const first = data.results?.[0];
+        if (first?.formatted) {
+          if (isDirectCampusHit) {
+            displayName = `${nearest.zone.name} (${first.formatted})`;
+            shortName = nearest.zone.name;
+          } else {
+            displayName = first.formatted;
+            shortName = first.components?.road || first.components?.neighbourhood || first.formatted.split(",")[0];
+          }
+          attribution = "Data © OpenCage / OpenStreetMap contributors";
+          resolvedFromApi = true;
         }
-        attribution = "Data © OpenStreetMap contributors, ODbL 1.0";
       }
+    } catch (err) {
+      console.warn("OpenCage reverse geocoding failed:", err);
     }
-  } catch (err) {
-    console.warn("Reverse geocode request failed:", err);
+  }
+
+  // 2. Try OpenStreetMap Nominatim reverse if OpenCage was not used or didn't resolve
+  if (!resolvedFromApi) {
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+      const res = await rateLimitedNominatimFetch(url, {});
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.display_name) {
+          if (isDirectCampusHit) {
+            displayName = `${nearest.zone.name} (${data.display_name})`;
+            shortName = nearest.zone.name;
+          } else {
+            displayName = data.display_name;
+            shortName = data.name || data.address?.road || data.address?.suburb || displayName.split(",")[0];
+          }
+          attribution = "Data © OpenStreetMap contributors, ODbL 1.0";
+        }
+      }
+    } catch (err) {
+      console.warn("Reverse geocode request failed:", err);
+    }
   }
 
   const result: ReverseGeocodingResult = {

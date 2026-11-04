@@ -80,3 +80,66 @@ test("Financial: Days and Pricing Calculation Formula", () => {
   const formatted = money(1883);
   assert.ok(formatted.includes("1,883") || formatted.includes("1883"));
 });
+
+test("Database: Booking Route Telemetry & Dropoff Location Persistence", () => {
+  const vehicle = db.getVehicles({ status: "approved" })[0];
+  assert.ok(vehicle);
+
+  const testBooking = db.createBooking({
+    vehicleId: vehicle.id,
+    vehicleName: vehicle.name,
+    vehicleMake: vehicle.make,
+    vehicleCategory: vehicle.category,
+    wheels: vehicle.wheels,
+    registrationNumber: vehicle.registrationNumber,
+    vehicleImage: vehicle.image,
+    city: vehicle.city,
+    pickupZone: vehicle.campusZone,
+    pickupAddress: vehicle.pickupAddress,
+    pickupLat: vehicle.latitude,
+    pickupLng: vehicle.longitude,
+    dropoffZone: "South Campus Gate / Research Park",
+    dropoffAddress: "IITM Research Park Tower A",
+    dropoffLat: 12.9862,
+    dropoffLng: 80.2412,
+    routeDistanceKm: 4.2,
+    estimatedDurationMins: 14,
+    customerId: "test-cust-audit",
+    customerName: "Audit Test User",
+    customerEmail: "audit@test.campus",
+    customerPhone: "+91 98765 43210",
+    drivingLicense: "DL-0420110012345",
+    ownerId: vehicle.ownerId,
+    ownerName: vehicle.ownerName,
+    start: "2027-12-01",
+    end: "2027-12-03",
+    rentalDays: 2,
+    ratePerDay: vehicle.price,
+    baseTotal: vehicle.price * 2,
+    helmetOptionSelected: "1 Helmet Included",
+    helmetFee: 0,
+    damageWaiver: 100,
+    platformFee: 50,
+    taxes: 25,
+    securityDeposit: 500,
+    total: vehicle.price * 2 + 100 + 50 + 25,
+    paymentStatus: "PENDING",
+    paymentMethod: "UPI",
+    paymentTxnId: "DEMO-TXN-1",
+    paidAt: "",
+    status: "CONFIRMED",
+  });
+
+  assert.ok(testBooking.id);
+  assert.equal(testBooking.dropoffZone, "South Campus Gate / Research Park");
+  assert.equal(testBooking.dropoffLat, 12.9862);
+  assert.equal(testBooking.dropoffLng, 80.2412);
+  assert.equal(testBooking.routeDistanceKm, 4.2);
+  assert.equal(testBooking.estimatedDurationMins, 14);
+
+  // Retrieve from DB
+  const retrieved = db.getBookingById(testBooking.id);
+  assert.ok(retrieved);
+  assert.equal(retrieved.routeDistanceKm, 4.2);
+  assert.equal(retrieved.estimatedDurationMins, 14);
+});
